@@ -29,7 +29,7 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 
 ---
 
-## Membro 2: [Nome do Membro 2]
+## Membro 2: [Sara Souza]
 ### Services/Controllers
 - [ ] Produto (service e controller)
 - [ ] Fornecedor (service e controller)

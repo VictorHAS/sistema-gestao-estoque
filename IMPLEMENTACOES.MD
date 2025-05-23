@@ -44,9 +44,9 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 
 ---
 
-## Membro 3: [Nome do Membro 3]
+## Membro 3: [Thiago Farias]
 ### Services/Controllers
-- [ ] Compra (service e controller)
+- [x] Compra (service e controller)
 - [ ] ItemCompra (service e controller)
 - [ ] Deposito (service e controller)
 

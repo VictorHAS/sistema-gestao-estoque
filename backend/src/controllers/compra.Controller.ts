@@ -1,93 +1,93 @@
-import { Request, Response } from 'express';
-import { CompraService } from '../services/compra.service';
-import { StatusPedido } from '../generated/prisma';
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { CompraService } from '../services/compra.service'
+import { StatusPedido } from '../generated/prisma'
 
-const compraService = new CompraService();
+const compraService = new CompraService()
 
 export class CompraController {
-    static async listarTodas(req: Request, res: Response): Promise<void> {
-        try {
-            const compras = await compraService.listarTodas();
-            res.json(compras);
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ mensagem: 'Erro ao listar compras', erro: error.message });
-            } else {
-                res.status(500).json({ mensagem: 'Erro desconhecido ao listar compras' });
-            }
-        }
+  static async listarTodas(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      const compras = await compraService.listarTodas()
+      reply.send(compras)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        reply.status(500).send({ mensagem: 'Erro ao listar compras', erro: error.message })
+      } else {
+        reply.status(500).send({ mensagem: 'Erro desconhecido ao listar compras' })
+      }
     }
+  }
 
-    static async obterPorId(req: Request, res: Response): Promise<void> {
-        const { id } = req.params;
+  static async obterPorId(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    const { id } = request.params
 
-        try {
-            const compra = await compraService.obterPorId(id);
-            if (!compra) {
-                res.status(404).json({ mensagem: 'Compra não encontrada' });
-                return;
-            }
-            res.json(compra);
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ mensagem: 'Erro ao obter compra', erro: error.message });
-            } else {
-                res.status(500).json({ mensagem: 'Erro desconhecido ao obter compra' });
-            }
-        }
+    try {
+      const compra = await compraService.obterPorId(id)
+      if (!compra) {
+        reply.status(404).send({ mensagem: 'Compra não encontrada' })
+        return
+      }
+      reply.send(compra)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        reply.status(500).send({ mensagem: 'Erro ao obter compra', erro: error.message })
+      } else {
+        reply.status(500).send({ mensagem: 'Erro desconhecido ao obter compra' })
+      }
     }
+  }
 
-    static async criar(req: Request, res: Response): Promise<void> {
-        try {
-            const compra = await compraService.criar(req.body);
-            res.status(201).json(compra);
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ mensagem: 'Erro ao criar compra', erro: error.message });
-            } else {
-                res.status(500).json({ mensagem: 'Erro desconhecido ao criar compra' });
-            }
-        }
+  static async criar(request: FastifyRequest<{ Body: any }>, reply: FastifyReply): Promise<void> {
+    try {
+      const compra = await compraService.criar(request.body)
+      reply.status(201).send(compra)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        reply.status(500).send({ mensagem: 'Erro ao criar compra', erro: error.message })
+      } else {
+        reply.status(500).send({ mensagem: 'Erro desconhecido ao criar compra' })
+      }
     }
+  }
 
-    static async atualizarStatus(req: Request, res: Response): Promise<void> {
-        const { id } = req.params;
-        const { status } = req.body;
+  static async atualizarStatus(request: FastifyRequest<{ Params: { id: string }; Body: { status: StatusPedido } }>, reply: FastifyReply): Promise<void> {
+    const { id } = request.params
+    const { status } = request.body
 
-        try {
-            if (!Object.values(StatusPedido).includes(status)) {
-                res.status(400).json({ mensagem: 'Status inválido' });
-                return;
-            }
+    try {
+      if (!Object.values(StatusPedido).includes(status)) {
+        reply.status(400).send({ mensagem: 'Status inválido' })
+        return
+      }
 
-            const compraAtualizada = await compraService.atualizarStatus(id, { status });
-            res.json(compraAtualizada);
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({
-                    mensagem: 'Erro ao atualizar status da compra',
-                    erro: error.message,
-                });
-            } else {
-                res.status(500).json({
-                    mensagem: 'Erro desconhecido ao atualizar status da compra',
-                });
-            }
-        }
-
-
-  static async excluir(req: Request, res: Response): Promise<void> {
-        const { id } = req.params;
-
-        try {
-            await compraService.excluir(id);
-            res.status(204).send();
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ mensagem: 'Erro ao excluir compra', erro: error.message });
-            } else {
-                res.status(500).json({ mensagem: 'Erro desconhecido ao excluir compra' });
-            }
-        }
+      const compraAtualizada = await compraService.atualizarStatus(id, { status })
+      reply.send(compraAtualizada)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        reply.status(500).send({
+          mensagem: 'Erro ao atualizar status da compra',
+          erro: error.message,
+        })
+      } else {
+        reply.status(500).send({
+          mensagem: 'Erro desconhecido ao atualizar status da compra',
+        })
+      }
     }
+  }
+
+  static async excluir(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    const { id } = request.params
+
+    try {
+      await compraService.excluir(id)
+      reply.status(204).send()
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        reply.status(500).send({ mensagem: 'Erro ao excluir compra', erro: error.message })
+      } else {
+        reply.status(500).send({ mensagem: 'Erro desconhecido ao excluir compra' })
+      }
+    }
+  }
 }

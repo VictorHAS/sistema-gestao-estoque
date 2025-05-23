@@ -1,41 +1,34 @@
+version: '3.8'
+
 services:
-  # Serviço do PostgreSQL
-  postgres:
-    image: postgres:14
-    container_name: gestao_estoque_postgres
-    restart: always
+  app:
+    container_name: inventory-api
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "5432:5432"
+      - "${PORT:-3333}:3333"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx prisma migrate deploy && npm run dev"
+
+  postgres:
+    container_name: postgres-db
+    image: postgres:15
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gestao_estoque
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
-
-  # Serviço do pgAdmin (opcional, para gerenciamento visual do banco)
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: gestao_estoque_pgadmin
-    restart: always
-    ports:
-      - "5050:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - postgres
-    networks:
-      - app_network
 
 volumes:
   postgres_data:
-  pgadmin_data:
-
-networks:
-  app_network:
-    driver: bridge

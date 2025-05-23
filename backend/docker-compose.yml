@@ -1,0 +1,32 @@
+services:
+  app:
+    container_name: inventory-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3333}:3333"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx prisma migrate deploy && npm run dev"
+
+  postgres:
+    container_name: postgres-db
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

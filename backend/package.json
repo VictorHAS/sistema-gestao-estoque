@@ -1,34 +1,33 @@
 {
-  "name": "sistema-gestao-estoque-backend",
+  "name": "inventory-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/servidor.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/servidor.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "start": "node dist/index.js",
+    "migrate": "npx prisma migrate dev",
+    "deploy": "npx prisma migrate deploy",
+    "generate": "npx prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@fastify/cors": "^11.0.1",
-    "@fastify/helmet": "^13.0.1",
-    "@fastify/jwt": "^9.1.0",
-    "@fastify/multipart": "^9.0.3",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.2",
-    "@prisma/client": "^6.8.2",
-    "dotenv": "^16.5.0",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
     "fastify": "^5.3.3",
-    "prisma": "^6.8.2"
+    "jsonwebtoken": "^9.0.0",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.9",
+    "prisma": "^6.8.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "tsx": "^4.19.4",
+    "typescript": "^5.3.3"
   }
 }

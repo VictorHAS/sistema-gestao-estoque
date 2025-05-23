@@ -1,192 +1,171 @@
--- CreateEnum
-CREATE TYPE "cargos" AS ENUM ('ADMIN', 'GERENTE', 'FUNCIONARIO');
+CREATE TYPE "user_role" AS ENUM ('ADMIN', 'MANAGER', 'STAFF');
 
--- CreateEnum
-CREATE TYPE "status_pedido" AS ENUM ('PENDENTE', 'CONCLUIDO', 'CANCELADO');
+CREATE TYPE "order_status" AS ENUM ('PENDING', 'COMPLETED', 'CANCELED');
 
--- CreateTable
-CREATE TABLE "usuarios" (
+CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "senha" TEXT NOT NULL,
-    "nome" TEXT NOT NULL,
-    "cargo" "cargos" NOT NULL DEFAULT 'FUNCIONARIO',
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "usuarios_pkey" PRIMARY KEY ("id")
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "role" "user_role" NOT NULL DEFAULT 'STAFF',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "produtos" (
+CREATE TABLE "categories" (
     "id" TEXT NOT NULL,
-    "nome" TEXT NOT NULL,
-    "descricao" TEXT,
-    "codigo" TEXT NOT NULL,
-    "preco" DOUBLE PRECISION NOT NULL,
-    "categoriaId" TEXT NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "produtos_pkey" PRIMARY KEY ("id")
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "categorias" (
+CREATE TABLE "products" (
     "id" TEXT NOT NULL,
-    "nome" TEXT NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "categorias_pkey" PRIMARY KEY ("id")
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "code" TEXT NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "category_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "products_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "fornecedores" (
+CREATE TABLE "suppliers" (
     "id" TEXT NOT NULL,
-    "nome" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "telefone" TEXT,
-    "endereco" TEXT,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "fornecedores_pkey" PRIMARY KEY ("id")
+    "phone" TEXT,
+    "address" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "suppliers_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "produtos_fornecedores" (
-    "fornecedorId" TEXT NOT NULL,
-    "produtoId" TEXT NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "produtos_fornecedores_pkey" PRIMARY KEY ("fornecedorId","produtoId")
+CREATE TABLE "product_suppliers" (
+    "supplier_id" TEXT NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "product_suppliers_pkey" PRIMARY KEY ("supplier_id", "product_id")
 );
 
--- CreateTable
-CREATE TABLE "depositos" (
+CREATE TABLE "warehouses" (
     "id" TEXT NOT NULL,
-    "nome" TEXT NOT NULL,
-    "localizacao" TEXT NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "depositos_pkey" PRIMARY KEY ("id")
+    "name" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "warehouses_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "estoque" (
+CREATE TABLE "stock" (
     "id" TEXT NOT NULL,
-    "produtoId" TEXT NOT NULL,
-    "depositoId" TEXT NOT NULL,
-    "quantidade" INTEGER NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "estoque_pkey" PRIMARY KEY ("id")
+    "product_id" TEXT NOT NULL,
+    "warehouse_id" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "stock_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "compras" (
+CREATE TABLE "purchases" (
     "id" TEXT NOT NULL,
-    "fornecedorId" TEXT NOT NULL,
-    "usuarioId" TEXT NOT NULL,
-    "dataCompra" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "status" "status_pedido" NOT NULL DEFAULT 'PENDENTE',
-    "valorTotal" DOUBLE PRECISION NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "compras_pkey" PRIMARY KEY ("id")
+    "supplier_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "purchase_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" "order_status" NOT NULL DEFAULT 'PENDING',
+    "total" DOUBLE PRECISION NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "purchases_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "itens_compra" (
+CREATE TABLE "purchase_items" (
     "id" TEXT NOT NULL,
-    "compraId" TEXT NOT NULL,
-    "produtoId" TEXT NOT NULL,
-    "quantidade" INTEGER NOT NULL,
-    "precoUnitario" DOUBLE PRECISION NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "itens_compra_pkey" PRIMARY KEY ("id")
+    "purchase_id" TEXT NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "unit_price" DOUBLE PRECISION NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "purchase_items_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "vendas" (
+CREATE TABLE "sales" (
     "id" TEXT NOT NULL,
-    "usuarioId" TEXT NOT NULL,
-    "dataVenda" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "status" "status_pedido" NOT NULL DEFAULT 'PENDENTE',
-    "valorTotal" DOUBLE PRECISION NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "vendas_pkey" PRIMARY KEY ("id")
+    "user_id" TEXT NOT NULL,
+    "sale_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" "order_status" NOT NULL DEFAULT 'PENDING',
+    "total" DOUBLE PRECISION NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "sales_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "itens_venda" (
+CREATE TABLE "sale_items" (
     "id" TEXT NOT NULL,
-    "vendaId" TEXT NOT NULL,
-    "produtoId" TEXT NOT NULL,
-    "quantidade" INTEGER NOT NULL,
-    "precoUnitario" DOUBLE PRECISION NOT NULL,
-    "dataCriacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "dataAtualizacao" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "itens_venda_pkey" PRIMARY KEY ("id")
+    "sale_id" TEXT NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "unit_price" DOUBLE PRECISION NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "sale_items_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "usuarios_email_key" ON "usuarios"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX "products_code_key" ON "products"("code");
+CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
+CREATE UNIQUE INDEX "suppliers_email_key" ON "suppliers"("email");
+CREATE UNIQUE INDEX "stock_product_id_warehouse_id_key" ON "stock"("product_id", "warehouse_id");
 
--- CreateIndex
-CREATE UNIQUE INDEX "produtos_codigo_key" ON "produtos"("codigo");
+ALTER TABLE "products"
+  ADD CONSTRAINT "products_category_id_fkey"
+  FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "categorias_nome_key" ON "categorias"("nome");
+ALTER TABLE "product_suppliers"
+  ADD CONSTRAINT "product_suppliers_supplier_id_fkey"
+  FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "fornecedores_email_key" ON "fornecedores"("email");
+ALTER TABLE "product_suppliers"
+  ADD CONSTRAINT "product_suppliers_product_id_fkey"
+  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "estoque_produtoId_depositoId_key" ON "estoque"("produtoId", "depositoId");
+ALTER TABLE "stock"
+  ADD CONSTRAINT "stock_product_id_fkey"
+  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "produtos" ADD CONSTRAINT "produtos_categoriaId_fkey" FOREIGN KEY ("categoriaId") REFERENCES "categorias"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "stock"
+  ADD CONSTRAINT "stock_warehouse_id_fkey"
+  FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "produtos_fornecedores" ADD CONSTRAINT "produtos_fornecedores_fornecedorId_fkey" FOREIGN KEY ("fornecedorId") REFERENCES "fornecedores"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "purchases"
+  ADD CONSTRAINT "purchases_supplier_id_fkey"
+  FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "produtos_fornecedores" ADD CONSTRAINT "produtos_fornecedores_produtoId_fkey" FOREIGN KEY ("produtoId") REFERENCES "produtos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "purchases"
+  ADD CONSTRAINT "purchases_user_id_fkey"
+  FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "estoque" ADD CONSTRAINT "estoque_produtoId_fkey" FOREIGN KEY ("produtoId") REFERENCES "produtos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "purchase_items"
+  ADD CONSTRAINT "purchase_items_purchase_id_fkey"
+  FOREIGN KEY ("purchase_id") REFERENCES "purchases"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "estoque" ADD CONSTRAINT "estoque_depositoId_fkey" FOREIGN KEY ("depositoId") REFERENCES "depositos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "purchase_items"
+  ADD CONSTRAINT "purchase_items_product_id_fkey"
+  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "compras" ADD CONSTRAINT "compras_fornecedorId_fkey" FOREIGN KEY ("fornecedorId") REFERENCES "fornecedores"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "sales"
+  ADD CONSTRAINT "sales_user_id_fkey"
+  FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "compras" ADD CONSTRAINT "compras_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "sale_items"
+  ADD CONSTRAINT "sale_items_sale_id_fkey"
+  FOREIGN KEY ("sale_id") REFERENCES "sales"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "itens_compra" ADD CONSTRAINT "itens_compra_compraId_fkey" FOREIGN KEY ("compraId") REFERENCES "compras"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "itens_compra" ADD CONSTRAINT "itens_compra_produtoId_fkey" FOREIGN KEY ("produtoId") REFERENCES "produtos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "vendas" ADD CONSTRAINT "vendas_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "itens_venda" ADD CONSTRAINT "itens_venda_vendaId_fkey" FOREIGN KEY ("vendaId") REFERENCES "vendas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "itens_venda" ADD CONSTRAINT "itens_venda_produtoId_fkey" FOREIGN KEY ("produtoId") REFERENCES "produtos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "sale_items"
+  ADD CONSTRAINT "sale_items_product_id_fkey"
+  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

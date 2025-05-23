@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { WarehouseController } from '../controllers/warehouse.controller';
+import { WarehouseController } from '../controllers/warehouse.controller.js';
 
 export async function warehouseRoutes(app: FastifyInstance) {
   const controller = new WarehouseController();

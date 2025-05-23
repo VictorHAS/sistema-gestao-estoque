@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateUserDTO, UpdateUserDTO } from '../dtos/user.dto';
-import { UserService } from '../services/user.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateUserDTO, UpdateUserDTO } from '../dtos/user.dto.js';
+import { UserService } from '../services/user.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class UserController {
   constructor(private readonly userService: UserService = new UserService()) {}

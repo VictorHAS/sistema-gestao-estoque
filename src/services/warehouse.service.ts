@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import { CreateWarehouseDTO, UpdateWarehouseDTO } from '../dtos/warehouse.dto';
+import { CreateWarehouseDTO, UpdateWarehouseDTO } from '../dtos/warehouse.dto.js';
 
 export class WarehouseService {
   async create(data: CreateWarehouseDTO) {

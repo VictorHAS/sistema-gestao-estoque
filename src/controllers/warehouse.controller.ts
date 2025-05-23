@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateWarehouseDTO, UpdateWarehouseDTO } from '../dtos/warehouse.dto';
-import { WarehouseService } from '../services/warehouse.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateWarehouseDTO, UpdateWarehouseDTO } from '../dtos/warehouse.dto.js';
+import { WarehouseService } from '../services/warehouse.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class WarehouseController {
   constructor(private readonly warehouseService: WarehouseService = new WarehouseService()) {}

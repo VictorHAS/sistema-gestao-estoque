@@ -1,32 +1,33 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import dotenv from 'dotenv';
-import { environment } from './config/environment';
-import { authenticate } from './middlewares/authenticate';
 
-// Rotas
-import { authRoutes } from './routes/auth.routes';
-import { userRoutes } from './routes/user.routes';
-import { productRoutes } from './routes/product.routes';
-import { supplierRoutes } from './routes/supplier.routes';
-import { warehouseRoutes } from './routes/warehouse.routes';
-import { stockRoutes } from './routes/stock.routes';
-import { purchaseRoutes } from './routes/purchase.routes';
-import { saleRoutes } from './routes/sale.routes';
-import { categoryRoutes } from './routes/category.routes';
+import { environment } from './config/environment.js';
+import { authenticate } from './middlewares/authenticate.js';
+import { registerSwagger } from './utils/swagger.js';
+
+import { authRoutes } from './routes/auth.routes.js';
+import { userRoutes } from './routes/user.routes.js';
+import { productRoutes } from './routes/product.routes.js';
+import { supplierRoutes } from './routes/supplier.routes.js';
+import { warehouseRoutes } from './routes/warehouse.routes.js';
+import { stockRoutes } from './routes/stock.routes.js';
+import { purchaseRoutes } from './routes/purchase.routes.js';
+import { saleRoutes } from './routes/sale.routes.js';
+import { categoryRoutes } from './routes/category.routes.js';
+
 
 dotenv.config();
 
-async function buildServer() {
+export async function buildServer() {
   const app = Fastify({ logger: true });
 
-  // Middleware global
-  app.register(cors);
+  await app.register(cors);
 
-  // JWT middleware decorator
   app.decorate('authenticate', authenticate);
 
-  // Registro das rotas
+  await registerSwagger(app);
+
   app.register(authRoutes);
   app.register(userRoutes);
   app.register(productRoutes);
@@ -46,8 +47,7 @@ buildServer().then(app => {
       app.log.error(err);
       process.exit(1);
     }
-    console.log(`🚀 Server running on http://localhost:${environment.port}`);
+    console.log(`🚀 Server running at http://localhost:${environment.port}`);
+    console.log(`📚 Swagger docs at http://localhost:${environment.port}/docs`);
   });
 });
-
-export { buildServer };

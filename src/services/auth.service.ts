@@ -1,20 +1,23 @@
-import { prisma } from '../config/prisma';
-import { compare } from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from '@prisma/client';
+import { prisma } from '../config/prisma.js';
 
 export class AuthService {
   async login(email: string, password: string): Promise<string> {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new Error('Invalid credentials');
 
-    const valid = await compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new Error('Invalid credentials');
 
-    return this.generateToken(user);
+    return this.generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
   }
 
-  private generateToken(user: User): string {
+  private generateToken(user: { id: string; email: string; role: string }): string {
     return jwt.sign(
       {
         sub: user.id,

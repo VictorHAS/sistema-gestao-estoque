@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { CategoryController } from '../controllers/category.controller';
+import { CategoryController } from '../controllers/category.controller.js';
 
 export async function categoryRoutes(app: FastifyInstance) {
   const controller = new CategoryController();

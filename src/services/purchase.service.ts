@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import { CreatePurchaseDTO } from '../dtos/purchase.dto';
+import { CreatePurchaseDTO } from '../dtos/purchase.dto.js';
 
 export class PurchaseService {
   async create(data: CreatePurchaseDTO) {

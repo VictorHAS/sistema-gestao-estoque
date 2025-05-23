@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateSupplierDTO, UpdateSupplierDTO } from '../dtos/supplier.dto';
-import { SupplierService } from '../services/supplier.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateSupplierDTO, UpdateSupplierDTO } from '../dtos/supplier.dto.js';
+import { SupplierService } from '../services/supplier.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class SupplierController {
   constructor(private readonly supplierService: SupplierService = new SupplierService()) {}

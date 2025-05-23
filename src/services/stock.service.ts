@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import { CreateStockDTO, UpdateStockDTO } from '../dtos/stock.dto';
+import { CreateStockDTO, UpdateStockDTO } from '../dtos/stock.dto.js';
 
 export class StockService {
   async create(data: CreateStockDTO) {

@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import { CreateCategoryDTO, UpdateCategoryDTO } from '../dtos/category.dto';
+import { CreateCategoryDTO, UpdateCategoryDTO } from '../dtos/category.dto.js';
 
 export class CategoryService {
   async create(data: CreateCategoryDTO) {

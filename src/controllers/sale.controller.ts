@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateSaleDTO } from '../dtos/sale.dto';
-import { SaleService } from '../services/sale.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateSaleDTO } from '../dtos/sale.dto.js';
+import { SaleService } from '../services/sale.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class SaleController {
   constructor(private readonly saleService: SaleService = new SaleService()) {}

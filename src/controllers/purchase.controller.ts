@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreatePurchaseDTO } from '../dtos/purchase.dto';
-import { PurchaseService } from '../services/purchase.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreatePurchaseDTO } from '../dtos/purchase.dto.js';
+import { PurchaseService } from '../services/purchase.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class PurchaseController {
   constructor(private readonly purchaseService: PurchaseService = new PurchaseService()) {}

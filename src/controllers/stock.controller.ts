@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateStockDTO, UpdateStockDTO } from '../dtos/stock.dto';
-import { StockService } from '../services/stock.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateStockDTO, UpdateStockDTO } from '../dtos/stock.dto.js';
+import { StockService } from '../services/stock.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class StockController {
   constructor(private readonly stockService: StockService = new StockService()) {}

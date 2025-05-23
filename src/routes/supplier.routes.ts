@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { SupplierController } from '../controllers/supplier.controller';
+import { SupplierController } from '../controllers/supplier.controller.js';
 
 export async function supplierRoutes(app: FastifyInstance) {
   const controller = new SupplierController();

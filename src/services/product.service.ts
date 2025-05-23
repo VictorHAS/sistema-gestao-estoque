@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import { CreateProductDTO, UpdateProductDTO } from '../dtos/product.dto';
+import { CreateProductDTO, UpdateProductDTO } from '../dtos/product.dto.js';
 
 export class ProductService {
   async create(data: CreateProductDTO) {

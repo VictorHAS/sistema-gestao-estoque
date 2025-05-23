@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { AuthService } from '../services/auth.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { AuthService } from '../services/auth.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 interface LoginDTO {
   email: string;

@@ -2,13 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
+    "moduleDetection": "force",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
     "esModuleInterop": true,
+    "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src", "src/types"],
-  "exclude": ["node_modules"]
+  "include": ["src"]
 }

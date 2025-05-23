@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateProductDTO, UpdateProductDTO } from '../dtos/product.dto';
-import { ProductService } from '../services/product.service';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CreateProductDTO, UpdateProductDTO } from '../dtos/product.dto.js';
+import { ProductService } from '../services/product.service.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class ProductController {
   constructor(private readonly productService: ProductService = new ProductService()) {}

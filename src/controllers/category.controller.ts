@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CategoryService } from '../services/category.service';
-import { CreateCategoryDTO, UpdateCategoryDTO } from '../dtos/category.dto';
-import { Response } from '../utils/response';
-import { logger } from '../utils/logger';
+import { CategoryService } from '../services/category.service.js';
+import { CreateCategoryDTO, UpdateCategoryDTO } from '../dtos/category.dto.js';
+import { Response } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService = new CategoryService()) {}

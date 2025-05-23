@@ -1,9 +1,0 @@
-import { ProductController } from '../controllers/product.controller';
-export async function productRoutes(app) {
-    const controller = new ProductController();
-    app.post('/products', controller.create.bind(controller));
-    app.get('/products', controller.findAll.bind(controller));
-    app.get('/products/:id', controller.findById.bind(controller));
-    app.put('/products/:id', controller.update.bind(controller));
-    app.delete('/products/:id', controller.delete.bind(controller));
-}

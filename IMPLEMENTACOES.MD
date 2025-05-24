@@ -47,14 +47,14 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 ## Membro 3: [Thiago Farias]
 ### Services/Controllers
 - [x] Compra (service e controller)
-- [ ] ItemCompra (service e controller)
-- [ ] Deposito (service e controller)
+- [x] ItemCompra (service e controller)
+- [x] Deposito (service e controller)
 
 ### Funcionalidades
-- [ ] Implementar registro de compras e itens de compra
-- [ ] Atualizar estoque ao registrar compra
-- [ ] Implementar relatório de movimentação de compras
-- [ ] Implementar CRUD de depósitos
+- [x] Implementar registro de compras e itens de compra
+- [x] Atualizar estoque ao registrar compra
+- [x] Implementar relatório de movimentação de compras
+- [x] Implementar CRUD de depósitos
 - [ ] Implementar movimentação de estoque entre depósitos
 
 ### Documentação

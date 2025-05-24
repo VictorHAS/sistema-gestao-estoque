@@ -7,10 +7,14 @@ interface ItemCompraDTO {
   precoUnitario: number;
 }
 
-interface CriarCompraDTO {
+export interface CriarCompraDTO {
   fornecedorId: string;
   usuarioId: string;
-  itens: ItemCompraDTO[];
+  itens: {
+    produtoId: string;
+    quantidade: number;
+    precoUnitario: number;
+  }[];
 }
 
 interface AtualizarStatusCompraDTO {
@@ -106,8 +110,30 @@ export class CompraService {
 
   async atualizarStatus(id: string, dados: AtualizarStatusCompraDTO): Promise<Compra> {
     try {
-      // Implementar lógica de atualização de status
-      throw new Error('Método não implementado');
+      const compraAtualizada = await prisma.compra.update({
+        where: { id },
+        data: {
+          status: dados.status,
+        },
+        include: {
+          fornecedor: true,
+          usuario: {
+            select: {
+              id: true,
+              nome: true,
+              email: true,
+              cargo: true,
+            },
+          },
+          itens: {
+            include: {
+              produto: true,
+            },
+          },
+        },
+      });
+
+      return compraAtualizada;
     } catch (error) {
       throw error;
     }
@@ -115,12 +141,15 @@ export class CompraService {
 
   async excluir(id: string): Promise<void> {
     try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
+      await prisma.itemCompra.deleteMany({
+        where: { compraId: id },
+      });
+      await prisma.compra.delete({
+        where: { id },
+      });
     } catch (error) {
       throw error;
     }
   }
+
 }
-
-

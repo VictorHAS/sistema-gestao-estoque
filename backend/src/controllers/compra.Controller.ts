@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { CompraService } from '../services/compra.service'
+import { CompraService, CriarCompraDTO } from '../services/compra.service'
 import { StatusPedido } from '../generated/prisma'
 
 const compraService = new CompraService()
@@ -18,7 +18,10 @@ export class CompraController {
     }
   }
 
-  static async obterPorId(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+  static async obterPorId(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ): Promise<void> {
     const { id } = request.params
 
     try {
@@ -37,7 +40,10 @@ export class CompraController {
     }
   }
 
-  static async criar(request: FastifyRequest<{ Body: any }>, reply: FastifyReply): Promise<void> {
+  static async criar(
+    request: FastifyRequest & { body: CriarCompraDTO },
+    reply: FastifyReply
+  ): Promise<void> {
     try {
       const compra = await compraService.criar(request.body)
       reply.status(201).send(compra)
@@ -50,7 +56,13 @@ export class CompraController {
     }
   }
 
-  static async atualizarStatus(request: FastifyRequest<{ Params: { id: string }; Body: { status: StatusPedido } }>, reply: FastifyReply): Promise<void> {
+  static async atualizarStatus(
+    request: FastifyRequest<{
+      Params: { id: string }
+      Body: { status: StatusPedido }
+    }>,
+    reply: FastifyReply
+  ): Promise<void> {
     const { id } = request.params
     const { status } = request.body
 
@@ -76,7 +88,10 @@ export class CompraController {
     }
   }
 
-  static async excluir(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+  static async excluir(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ): Promise<void> {
     const { id } = request.params
 
     try {

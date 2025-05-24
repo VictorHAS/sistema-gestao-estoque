@@ -62,7 +62,7 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 
 ---
 
-## Membro 4: [Nome do Membro 4]
+## Membro 4: [Alexandre Pontes]
 ### Services/Controllers
 - [ ] Venda (service e controller)
 - [ ] ItemVenda (service e controller)

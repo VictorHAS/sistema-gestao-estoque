@@ -1,7 +1,7 @@
 import { Produto } from '../generated/prisma';
 import { prisma } from '../servidor';
 
-interface CriarProdutoDTO {
+export interface CriarProdutoDTO {
   nome: string;
   descricao?: string;
   codigo: string;
@@ -9,7 +9,7 @@ interface CriarProdutoDTO {
   categoriaId: string;
 }
 
-interface AtualizarProdutoDTO {
+export interface AtualizarProdutoDTO {
   nome?: string;
   descricao?: string;
   codigo?: string;
@@ -50,8 +50,20 @@ export class ProdutoService {
 
   async criar(dados: CriarProdutoDTO): Promise<Produto> {
     try {
-      // Implementar lógica de criação
-      throw new Error('Método não implementado');
+      const novoProduto = await prisma.produto.create({
+        data: {
+          nome: dados.nome,
+          descricao: dados.descricao,
+          codigo: dados.codigo,
+          preco: dados.preco,
+          categoriaId: dados.categoriaId,
+        },
+        include: {
+          categoria: true,
+        },
+      });
+
+      return novoProduto;
     } catch (error) {
       throw error;
     }
@@ -59,8 +71,21 @@ export class ProdutoService {
 
   async atualizar(id: string, dados: AtualizarProdutoDTO): Promise<Produto> {
     try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
+      const produtoAtualizado = await prisma.produto.update({
+        where: { id },
+        data: {
+          nome: dados.nome,
+          descricao: dados.descricao,
+          codigo: dados.codigo,
+          preco: dados.preco,
+          categoriaId: dados.categoriaId,
+        },
+        include: {
+          categoria: true,
+        },
+      });
+
+      return produtoAtualizado;
     } catch (error) {
       throw error;
     }
@@ -68,8 +93,17 @@ export class ProdutoService {
 
   async excluir(id: string): Promise<void> {
     try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
+      await prisma.produtoFornecedor.deleteMany({
+        where: { produtoId: id },
+      });
+
+      await prisma.itemCompra.deleteMany({
+        where: { produtoId: id },
+      });
+
+      await prisma.produto.delete({
+        where: { id },
+      });
     } catch (error) {
       throw error;
     }
@@ -77,8 +111,17 @@ export class ProdutoService {
 
   async buscarPorNome(nome: string): Promise<Produto[]> {
     try {
-      // Implementar lógica de busca por nome
-      throw new Error('Método não implementado');
+      return await prisma.produto.findMany({
+        where: {
+          nome: {
+            contains: nome,
+            mode: 'insensitive',
+          },
+        },
+        include: {
+          categoria: true,
+        },
+      });
     } catch (error) {
       throw error;
     }

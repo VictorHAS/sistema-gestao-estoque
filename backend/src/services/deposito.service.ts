@@ -1,22 +1,22 @@
-import { Deposito } from '../generated/prisma';
-import { prisma } from '../servidor';
+import { Deposito } from '../generated/prisma'
+import { prisma } from '../servidor'
 
 interface CriarDepositoDTO {
-  nome: string;
-  localizacao: string;
+  nome: string
+  localizacao: string
 }
 
 interface AtualizarDepositoDTO {
-  nome?: string;
-  localizacao?: string;
+  nome?: string
+  localizacao?: string
 }
 
 export class DepositoService {
   async listarTodos(): Promise<Deposito[]> {
     try {
-      return await prisma.deposito.findMany();
+      return await prisma.deposito.findMany()
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 
@@ -31,36 +31,51 @@ export class DepositoService {
             },
           },
         },
-      });
+      })
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 
   async criar(dados: CriarDepositoDTO): Promise<Deposito> {
     try {
-      // Implementar lógica de criação
-      throw new Error('Método não implementado');
+      const novoDeposito = await prisma.deposito.create({
+        data: {
+          nome: dados.nome,
+          localizacao: dados.localizacao,
+        },
+      })
+      return novoDeposito
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 
   async atualizar(id: string, dados: AtualizarDepositoDTO): Promise<Deposito> {
     try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
+      const depositoAtualizado = await prisma.deposito.update({
+        where: { id },
+        data: {
+          nome: dados.nome,
+          localizacao: dados.localizacao,
+        },
+      })
+      return depositoAtualizado
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 
   async excluir(id: string): Promise<void> {
     try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
+      await prisma.estoque.deleteMany({
+        where: { depositoId: id },
+      })
+      await prisma.deposito.delete({
+        where: { id },
+      })
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 }

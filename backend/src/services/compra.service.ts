@@ -70,12 +70,38 @@ export class CompraService {
   }
 
   async criar(dados: CriarCompraDTO): Promise<Compra> {
-    try {
-      // Implementar lógica de criação de compra
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    const novaCompra = await prisma.compra.create({
+      data: {
+        fornecedorId: dados.fornecedorId,
+        usuarioId: dados.usuarioId,
+        status: 'PENDENTE',
+        itens: {
+          create: dados.itens.map(item => ({
+            produtoId: item.produtoId,
+            quantidade: item.quantidade,
+            precoUnitario: item.precoUnitario,
+          })),
+        },
+      },
+      include: {
+        fornecedor: true,
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            cargo: true,
+          },
+        },
+        itens: {
+          include: {
+            produto: true,
+          },
+        },
+      },
+    });
+
+    return novaCompra;
   }
 
   async atualizarStatus(id: string, dados: AtualizarStatusCompraDTO): Promise<Compra> {
@@ -96,3 +122,5 @@ export class CompraService {
     }
   }
 }
+
+

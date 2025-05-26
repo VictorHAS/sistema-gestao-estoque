@@ -12,7 +12,11 @@ interface AtualizarCategoriaDTO {
 export class CategoriaService {
   async listarTodas(): Promise<Categoria[]> {
     try {
-      return await prisma.categoria.findMany();
+      return await prisma.categoria.findMany({
+        orderBy: {
+          nome: 'asc'
+        }
+      });
     } catch (error) {
       throw error;
     }
@@ -22,6 +26,27 @@ export class CategoriaService {
     try {
       return await prisma.categoria.findUnique({
         where: { id },
+        include: {
+          produtos: true
+        }
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async buscarPorNome(nome: string): Promise<Categoria[]> {
+    try {
+      return await prisma.categoria.findMany({
+        where: {
+          nome: {
+            contains: nome,
+            mode: 'insensitive'
+          }
+        },
+        orderBy: {
+          nome: 'asc'
+        }
       });
     } catch (error) {
       throw error;
@@ -30,6 +55,15 @@ export class CategoriaService {
 
   async criar(dados: CriarCategoriaDTO): Promise<Categoria> {
     try {
+      // Verificar se já existe uma categoria com este nome
+      const categoriaExistente = await prisma.categoria.findUnique({
+        where: { nome: dados.nome }
+      });
+
+      if (categoriaExistente) {
+        throw new Error('Categoria com este nome já existe');
+      }
+
       return await prisma.categoria.create({
         data: dados,
       });
@@ -40,8 +74,33 @@ export class CategoriaService {
 
   async atualizar(id: string, dados: AtualizarCategoriaDTO): Promise<Categoria> {
     try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
+      // Verificar se a categoria existe
+      const categoriaExistente = await prisma.categoria.findUnique({
+        where: { id }
+      });
+
+      if (!categoriaExistente) {
+        throw new Error('Categoria não encontrada');
+      }
+
+      // Se está atualizando o nome, verificar se não existe outra categoria com o mesmo nome
+      if (dados.nome) {
+        const categoriaComMesmoNome = await prisma.categoria.findFirst({
+          where: {
+            nome: dados.nome,
+            id: { not: id }
+          }
+        });
+
+        if (categoriaComMesmoNome) {
+          throw new Error('Já existe uma categoria com este nome');
+        }
+      }
+
+      return await prisma.categoria.update({
+        where: { id },
+        data: dados,
+      });
     } catch (error) {
       throw error;
     }
@@ -49,8 +108,26 @@ export class CategoriaService {
 
   async excluir(id: string): Promise<void> {
     try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
+      // Verificar se a categoria existe
+      const categoria = await prisma.categoria.findUnique({
+        where: { id },
+        include: {
+          produtos: true
+        }
+      });
+
+      if (!categoria) {
+        throw new Error('Categoria não encontrada');
+      }
+
+      // Verificar se há produtos associados
+      if (categoria.produtos.length > 0) {
+        throw new Error('Não é possível excluir categoria com produtos associados');
+      }
+
+      await prisma.categoria.delete({
+        where: { id }
+      });
     } catch (error) {
       throw error;
     }

@@ -10,7 +10,8 @@ import { opcoesSwagger, opcoesSwaggerUi } from './utils/swagger';
 
 // Rotas
 import rotasAutenticacao from './routes/autenticacao.routes';
-import rotasCategoria from './routes/categoria.routes'
+import rotasCategoria from './routes/categoria.routes';
+import rotasUsuario from './routes/usuario.routes';
 // import rotasProduto from './routes/produto.routes';
 // import rotasFornecedor from './routes/fornecedor.routes';
 // import rotasCompra from './routes/compra.routes';
@@ -46,6 +47,7 @@ servidor.register(fastifySwaggerUi, opcoesSwaggerUi);
 // Registrar rotas
 servidor.register(rotasAutenticacao, { prefix: '/api/auth' });
 servidor.register(rotasCategoria, { prefix: '/api/categorias' });
+servidor.register(rotasUsuario, { prefix: '/api/usuarios' });
 // servidor.register(rotasProduto, { prefix: '/api/produtos' });
 // servidor.register(rotasFornecedor, { prefix: '/api/fornecedores' });
 // servidor.register(rotasCompra, { prefix: '/api/compras' });

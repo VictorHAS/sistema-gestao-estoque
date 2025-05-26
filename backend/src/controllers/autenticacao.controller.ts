@@ -1,13 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AutenticacaoService } from '../services/autenticacao.service';
-import { Cargo } from '../generated/prisma';
-
-interface RegistrarBody {
-  nome: string;
-  email: string;
-  senha: string;
-  cargo?: Cargo;
-}
 
 interface LoginBody {
   email: string;
@@ -20,28 +12,6 @@ export class AutenticacaoController {
   constructor() {
     this.autenticacaoService = new AutenticacaoService();
   }
-
-  registrar = async (
-    request: FastifyRequest<{ Body: RegistrarBody }>,
-    reply: FastifyReply
-  ) => {
-    try {
-      const { nome, email, senha, cargo } = request.body;
-      const usuario = await this.autenticacaoService.registrar({
-        nome,
-        email,
-        senha,
-        cargo,
-      });
-      return reply.code(201).send(usuario);
-    } catch (error) {
-      request.log.error(error);
-      if (error instanceof Error && error.message === 'Usuário com este email já existe') {
-        return reply.code(400).send({ error: error.message });
-      }
-      return reply.code(500).send({ error: 'Erro ao registrar usuário' });
-    }
-  };
 
   login = async (
     request: FastifyRequest<{ Body: LoginBody }>,

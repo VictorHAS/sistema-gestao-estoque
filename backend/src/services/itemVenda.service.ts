@@ -37,14 +37,15 @@ export class ItemVendaService {
 
   // Criar um novo item de venda
   async criar(dados: CriarItemVendaDTO): Promise<ItemVenda> {
-    try {
-      return await prisma.itemVenda.create({
-        data: dados,
-      });
-    } catch (error) {
-      throw error;
-    }
+  try {
+    console.log(`[ITEMVENDA] Criando item de venda: produto ${dados.produtoId}, venda ${dados.vendaId}, quantidade ${dados.quantidade}, preço unitário ${dados.precoUnitario}`);
+    return await prisma.itemVenda.create({
+      data: dados,
+    });
+  } catch (error) {
+    throw error;
   }
+}
 
   // Obter item de venda por ID
   async obterPorId(id: string): Promise<ItemVenda | null> {
@@ -63,12 +64,13 @@ export class ItemVendaService {
 
   // Excluir item de venda
   async excluir(id: string): Promise<void> {
-    try {
-      await prisma.itemVenda.delete({
-        where: { id },
-      });
-    } catch (error) {
-      throw error;
-    }
+  try {
+    console.log(`[ITEMVENDA] Excluindo item de venda ${id}`);
+    await prisma.itemVenda.delete({
+      where: { id },
+    });
+  } catch (error) {
+    throw error;
   }
+}
 }

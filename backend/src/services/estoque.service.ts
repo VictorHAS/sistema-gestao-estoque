@@ -45,23 +45,26 @@ export class EstoqueService {
   }
 
   async criar(dados: CriarEstoqueDTO): Promise<Estoque> {
-    try {
-      // Verifica se estoque já existe para o produto no depósito
-      const existente = await this.obterPorProdutoEDeposito(dados.produtoId, dados.depositoId);
-      if (existente) {
-        throw new Error('Estoque já existe para este produto neste depósito.');
-      }
-      return await prisma.estoque.create({
-        data: {
-          produtoId: dados.produtoId,
-          depositoId: dados.depositoId,
-          quantidade: dados.quantidade,
-        },
-      });
-    } catch (error) {
-      throw error;
+  try {
+    const existente = await this.obterPorProdutoEDeposito(dados.produtoId, dados.depositoId);
+    if (existente) {
+      throw new Error('Estoque já existe para este produto neste depósito.');
     }
+
+    console.log(`[ESTOQUE] Criando novo estoque: produto ${dados.produtoId}, depósito ${dados.depositoId}, quantidade ${dados.quantidade}`);
+
+    return await prisma.estoque.create({
+      data: {
+        produtoId: dados.produtoId,
+        depositoId: dados.depositoId,
+        quantidade: dados.quantidade,
+      },
+    });
+  } catch (error) {
+    throw error;
   }
+}
+
 
   async atualizar(id: string, dados: AtualizarEstoqueDTO): Promise<Estoque> {
     try {
@@ -86,37 +89,46 @@ export class EstoqueService {
   }
 
   async adicionarEstoque(produtoId: string, depositoId: string, quantidade: number): Promise<Estoque> {
-    try {
-      const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
-      if (!estoqueAtual) {
-        throw new Error('Estoque não encontrado para adicionar quantidade.');
-      }
-      return await prisma.estoque.update({
-        where: { produtoId_depositoId: { produtoId, depositoId } },
-        data: { quantidade: estoqueAtual.quantidade + quantidade },
-      });
-    } catch (error) {
-      throw error;
+  try {
+    const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
+    if (!estoqueAtual) {
+      throw new Error('Estoque não encontrado para adicionar quantidade.');
     }
+
+    const novaQuantidade = estoqueAtual.quantidade + quantidade;
+    console.log(`[ESTOQUE] Adicionando ${quantidade} unidades ao produto ${produtoId} no depósito ${depositoId}. Nova quantidade: ${novaQuantidade}`);
+
+    return await prisma.estoque.update({
+      where: { produtoId_depositoId: { produtoId, depositoId } },
+      data: { quantidade: novaQuantidade },
+    });
+  } catch (error) {
+    throw error;
   }
+}
 
   async removerEstoque(produtoId: string, depositoId: string, quantidade: number): Promise<Estoque> {
-    try {
-      const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
-      if (!estoqueAtual) {
-        throw new Error('Estoque não encontrado para remover quantidade.');
-      }
-      if (estoqueAtual.quantidade < quantidade) {
-        throw new Error('Quantidade insuficiente em estoque para remoção.');
-      }
-      return await prisma.estoque.update({
-        where: { produtoId_depositoId: { produtoId, depositoId } },
-        data: { quantidade: estoqueAtual.quantidade - quantidade },
-      });
-    } catch (error) {
-      throw error;
+  try {
+    const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
+    if (!estoqueAtual) {
+      throw new Error('Estoque não encontrado para remover quantidade.');
     }
+    if (estoqueAtual.quantidade < quantidade) {
+      throw new Error('Quantidade insuficiente em estoque para remoção.');
+    }
+
+    const novaQuantidade = estoqueAtual.quantidade - quantidade;
+    console.log(`[ESTOQUE] Removendo ${quantidade} unidades do produto ${produtoId} no depósito ${depositoId}. Nova quantidade: ${novaQuantidade}`);
+
+    return await prisma.estoque.update({
+      where: { produtoId_depositoId: { produtoId, depositoId } },
+      data: { quantidade: novaQuantidade },
+    });
+  } catch (error) {
+    throw error;
   }
+}
+
 
   async listarProdutosComEstoqueBaixo(limiteMinimo: number = 10): Promise<Estoque[]> {
     try {

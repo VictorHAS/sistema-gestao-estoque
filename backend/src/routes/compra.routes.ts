@@ -11,7 +11,7 @@ export default async function (fastify: FastifyInstance) {
   fastify.addHook('preHandler', autenticar);
 
   // Listar todas as compras
-  fastify.get('/', compraController.listarTodas);
+  fastify.get('/', CompraController.listarTodas);
 
   // Obter compra por ID
   fastify.get('/:id', {
@@ -23,32 +23,31 @@ export default async function (fastify: FastifyInstance) {
         }
       }
     }
-  }, compraController.obterPorId);
+  }, CompraController.obterPorId);
 
-  // Criar compra
-  fastify.post('/', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['fornecedorId', 'itens'],
-        properties: {
-          fornecedorId: { type: 'string' },
-          itens: {
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['produtoId', 'quantidade', 'precoUnitario'],
-              properties: {
-                produtoId: { type: 'string' },
-                quantidade: { type: 'integer', minimum: 1 },
-                precoUnitario: { type: 'number', minimum: 0 }
-              }
+fastify.post('/', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['fornecedorId', 'itens'],
+      properties: {
+        fornecedorId: { type: 'string' },
+        itens: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['produtoId', 'quantidade', 'precoUnitario'],
+            properties: {
+              produtoId: { type: 'string' },
+              quantidade: { type: 'integer', minimum: 1 },
+              precoUnitario: { type: 'number', minimum: 0 }
             }
           }
         }
       }
     }
-  }, compraController.criar);
+  }
+}, CompraController.criar);
 
   // Atualizar status da compra (apenas ADMIN e GERENTE)
   fastify.patch('/:id/status', {
@@ -68,7 +67,7 @@ export default async function (fastify: FastifyInstance) {
         }
       }
     }
-  }, compraController.atualizarStatus);
+  }, CompraController.atualizarStatus);
 
   // Excluir compra (apenas ADMIN)
   fastify.delete('/:id', {
@@ -81,5 +80,5 @@ export default async function (fastify: FastifyInstance) {
         }
       }
     }
-  }, compraController.excluir);
+  }, CompraController.excluir);
 }

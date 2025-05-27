@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { CompraService } from '../services/compra.service'
 import { StatusPedido } from '../generated/prisma'
+import { CriarCompraDTO } from '../services/compra.service';
 
 const compraService = new CompraService()
 
@@ -37,7 +38,7 @@ export class CompraController {
     }
   }
 
-  static async criar(request: FastifyRequest<{ Body: any }>, reply: FastifyReply): Promise<void> {
+  static async criar(request: FastifyRequest<{ Body: CriarCompraDTO }>, reply: FastifyReply): Promise<void> {
     try {
       const compra = await compraService.criar(request.body)
       reply.status(201).send(compra)

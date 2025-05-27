@@ -11,13 +11,12 @@ import { opcoesSwagger, opcoesSwaggerUi } from './utils/swagger';
 // Rotas
 import rotasAutenticacao from './routes/autenticacao.routes';
 import rotasCategoria from './routes/categoria.routes';
-import rotasUsuario from './routes/usuario.routes';
 // import rotasProduto from './routes/produto.routes';
 // import rotasFornecedor from './routes/fornecedor.routes';
 // import rotasCompra from './routes/compra.routes';
 // import rotasVenda from './routes/venda.routes';
 // import rotasDeposito from './routes/deposito.routes';
-// import rotasEstoque from './routes/estoque.routes';
+import rotasEstoque from './routes/estoque.routes';
 
 // Variáveis de ambiente
 import { config } from './config/ambiente';
@@ -47,13 +46,12 @@ servidor.register(fastifySwaggerUi, opcoesSwaggerUi);
 // Registrar rotas
 servidor.register(rotasAutenticacao, { prefix: '/api/auth' });
 servidor.register(rotasCategoria, { prefix: '/api/categorias' });
-servidor.register(rotasUsuario, { prefix: '/api/usuarios' });
 // servidor.register(rotasProduto, { prefix: '/api/produtos' });
 // servidor.register(rotasFornecedor, { prefix: '/api/fornecedores' });
 // servidor.register(rotasCompra, { prefix: '/api/compras' });
 // servidor.register(rotasVenda, { prefix: '/api/vendas' });
 // servidor.register(rotasDeposito, { prefix: '/api/depositos' });
-// servidor.register(rotasEstoque, { prefix: '/api/estoque' });
+servidor.register(rotasEstoque, { prefix: '/api/estoque' });
 
 // Tratador de erros
 servidor.setErrorHandler(tratadorErros);

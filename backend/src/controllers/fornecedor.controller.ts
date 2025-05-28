@@ -24,28 +24,38 @@ interface AtualizarFornecedorBody {
   endereco?: string;
 }
 
+// Helper de resposta padrão
+const response = (success: boolean, message: string, data: any = null) => ({
+  success,
+  message,
+  data,
+});
+
 export class FornecedorController {
-  private fornecedorService: FornecedorService;
+  private fornecedorService = new FornecedorService();
 
-  constructor() {
-    this.fornecedorService = new FornecedorService();
-  }
-
-  listarTodos = async (_request: FastifyRequest, reply: FastifyReply) => {
-    const fornecedores = await this.fornecedorService.listarTodos();
-    reply.send(fornecedores);
+  listarTodos = async (_req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const fornecedores = await this.fornecedorService.listarTodos();
+      reply.send(response(true, 'Lista de fornecedores', fornecedores));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao listar fornecedores'));
+    }
   };
 
   obterPorId = async (
     request: FastifyRequest<{ Params: ParamsWithId }>,
     reply: FastifyReply
   ) => {
-    const { id } = request.params;
-    const fornecedor = await this.fornecedorService.obterPorId(id);
-    if (fornecedor) {
-      reply.send(fornecedor);
-    } else {
-      reply.status(404).send({ message: 'Fornecedor não encontrado' });
+    try {
+      const { id } = request.params;
+      const fornecedor = await this.fornecedorService.obterPorId(id);
+      if (!fornecedor) {
+        return reply.status(404).send(response(false, 'Fornecedor não encontrado'));
+      }
+      reply.send(response(true, 'Fornecedor encontrado', fornecedor));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao obter fornecedor'));
     }
   };
 
@@ -53,20 +63,27 @@ export class FornecedorController {
     request: FastifyRequest<{ Body: CriarFornecedorBody }>,
     reply: FastifyReply
   ) => {
-    const novoFornecedor = await this.fornecedorService.criar(request.body);
-    reply.status(201).send(novoFornecedor);
+    try {
+      const novo = await this.fornecedorService.criar(request.body);
+      reply.status(201).send(response(true, 'Fornecedor criado com sucesso', novo));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao criar fornecedor'));
+    }
   };
 
   atualizar = async (
     request: FastifyRequest<{ Params: ParamsWithId; Body: AtualizarFornecedorBody }>,
     reply: FastifyReply
   ) => {
-    const { id } = request.params;
-    const atualizado = await this.fornecedorService.atualizar(id, request.body);
-    if (atualizado) {
-      reply.send(atualizado);
-    } else {
-      reply.status(404).send({ message: 'Fornecedor não encontrado para atualização' });
+    try {
+      const { id } = request.params;
+      const atualizado = await this.fornecedorService.atualizar(id, request.body);
+      if (!atualizado) {
+        return reply.status(404).send(response(false, 'Fornecedor não encontrado para atualização'));
+      }
+      reply.send(response(true, 'Fornecedor atualizado com sucesso', atualizado));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao atualizar fornecedor'));
     }
   };
 
@@ -74,12 +91,15 @@ export class FornecedorController {
     request: FastifyRequest<{ Params: ParamsWithId }>,
     reply: FastifyReply
   ) => {
-    const { id } = request.params;
-    const removido = await this.fornecedorService.excluir(id);
-    if (removido) {
-      reply.status(204).send();
-    } else {
-      reply.status(404).send({ message: 'Fornecedor não encontrado para exclusão' });
+    try {
+      const { id } = request.params;
+      const removido = await this.fornecedorService.excluir(id);
+      if (!removido) {
+        return reply.status(404).send(response(false, 'Fornecedor não encontrado para exclusão'));
+      }
+      reply.status(204).send(); // sem corpo
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao excluir fornecedor'));
     }
   };
 
@@ -87,12 +107,15 @@ export class FornecedorController {
     request: FastifyRequest<{ Params: ProdutoFornecedorParams }>,
     reply: FastifyReply
   ) => {
-    const { fornecedorId, produtoId } = request.params;
-    const resultado = await this.fornecedorService.adicionarProduto(fornecedorId, produtoId);
-    if (resultado) {
-      reply.send({ message: 'Produto adicionado ao fornecedor com sucesso' });
-    } else {
-      reply.status(400).send({ message: 'Erro ao adicionar produto ao fornecedor' });
+    try {
+      const { fornecedorId, produtoId } = request.params;
+      const resultado = await this.fornecedorService.adicionarProduto(fornecedorId, produtoId);
+      if (!resultado) {
+        return reply.status(400).send(response(false, 'Erro ao adicionar produto ao fornecedor'));
+      }
+      reply.send(response(true, 'Produto adicionado ao fornecedor com sucesso'));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao adicionar produto'));
     }
   };
 
@@ -100,12 +123,15 @@ export class FornecedorController {
     request: FastifyRequest<{ Params: ProdutoFornecedorParams }>,
     reply: FastifyReply
   ) => {
-    const { fornecedorId, produtoId } = request.params;
-    const resultado = await this.fornecedorService.removerProduto(fornecedorId, produtoId);
-    if (resultado) {
-      reply.send({ message: 'Produto removido do fornecedor com sucesso' });
-    } else {
-      reply.status(400).send({ message: 'Erro ao remover produto do fornecedor' });
+    try {
+      const { fornecedorId, produtoId } = request.params;
+      const resultado = await this.fornecedorService.removerProduto(fornecedorId, produtoId);
+      if (!resultado) {
+        return reply.status(400).send(response(false, 'Erro ao remover produto do fornecedor'));
+      }
+      reply.send(response(true, 'Produto removido do fornecedor com sucesso'));
+    } catch (err) {
+      reply.status(500).send(response(false, 'Erro ao remover produto'));
     }
   };
 }

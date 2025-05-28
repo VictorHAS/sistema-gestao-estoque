@@ -32,46 +32,67 @@ export class ProdutoController {
     this.produtoService = new ProdutoService();
   }
 
-  listarTodos = async (request: FastifyRequest, reply: FastifyReply) => {
-    // Implementar
+  listarTodos = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const produtos = await this.produtoService.listarTodos();
+    reply.send(produtos);
   };
 
   obterPorId = async (
     request: FastifyRequest<{ Params: ParamsWithId }>,
     reply: FastifyReply
   ) => {
-    // Implementar
+    const { id } = request.params;
+    const produto = await this.produtoService.obterPorId(id);
+    if (produto) {
+      reply.send(produto);
+    } else {
+      reply.status(404).send({ message: 'Produto não encontrado' });
+    }
   };
 
   buscarPorNome = async (
     request: FastifyRequest<{ Params: ParamsWithNome }>,
     reply: FastifyReply
   ) => {
-    // Implementar
+    const { nome } = request.params;
+    const produtos = await this.produtoService.buscarPorNome(nome);
+    reply.send(produtos);
   };
 
   criar = async (
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    // Implementar
-    const {  } = request.body as CriarProdutoBody;
+    const dados = request.body as CriarProdutoBody;
+    const novoProduto = await this.produtoService.criar(dados);
+    reply.status(201).send(novoProduto);
   };
 
   atualizar = async (
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    // Implementar
     const { id } = request.params as ParamsWithId;
-    const { nome, descricao, codigo, preco, categoriaId } = request.body as AtualizarProdutoBody;
+    const dados = request.body as AtualizarProdutoBody;
+
+    const atualizado = await this.produtoService.atualizar(id, dados);
+    if (atualizado) {
+      reply.send(atualizado);
+    } else {
+      reply.status(404).send({ message: 'Produto não encontrado para atualização' });
+    }
   };
 
   excluir = async (
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    // Implementar
     const { id } = request.params as ParamsWithId;
+    const excluido = await this.produtoService.excluir(id);
+    if (excluido) {
+      reply.status(204).send();
+    } else {
+      reply.status(404).send({ message: 'Produto não encontrado para exclusão' });
+    }
   };
 }

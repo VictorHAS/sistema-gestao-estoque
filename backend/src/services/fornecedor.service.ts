@@ -17,72 +17,72 @@ interface AtualizarFornecedorDTO {
 
 export class FornecedorService {
   async listarTodos(): Promise<Fornecedor[]> {
-    try {
-      return await prisma.fornecedor.findMany();
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.fornecedor.findMany({
+      include: {
+        produtos: {
+          include: { produto: true }
+        }
+      }
+    });
   }
 
   async obterPorId(id: string): Promise<Fornecedor | null> {
-    try {
-      return await prisma.fornecedor.findUnique({
-        where: { id },
-        include: {
-          produtos: {
-            include: {
-              produto: true,
-            },
+    return await prisma.fornecedor.findUnique({
+      where: { id },
+      include: {
+        produtos: {
+          include: {
+            produto: true,
           },
         },
-      });
-    } catch (error) {
-      throw error;
-    }
+      },
+    });
   }
 
   async criar(dados: CriarFornecedorDTO): Promise<Fornecedor> {
-    try {
-      // Implementar lógica de criação
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.fornecedor.create({
+      data: {
+        nome: dados.nome,
+        email: dados.email,
+        telefone: dados.telefone,
+        endereco: dados.endereco,
+      },
+    });
   }
 
   async atualizar(id: string, dados: AtualizarFornecedorDTO): Promise<Fornecedor> {
-    try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.fornecedor.update({
+      where: { id },
+      data: {
+        nome: dados.nome,
+        email: dados.email,
+        telefone: dados.telefone,
+        endereco: dados.endereco,
+      },
+    });
   }
 
   async excluir(id: string): Promise<void> {
-    try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    await prisma.fornecedor.delete({
+      where: { id },
+    });
   }
 
   async adicionarProduto(fornecedorId: string, produtoId: string): Promise<void> {
-    try {
-      // Implementar lógica para adicionar produto ao fornecedor
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    await prisma.produtoFornecedor.create({
+      data: {
+        fornecedorId,
+        produtoId,
+      },
+    });
   }
 
   async removerProduto(fornecedorId: string, produtoId: string): Promise<void> {
-    try {
-      // Implementar lógica para remover produto do fornecedor
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    await prisma.produtoFornecedor.deleteMany({
+      where: {
+        fornecedorId,
+        produtoId,
+      },
+    });
   }
 }

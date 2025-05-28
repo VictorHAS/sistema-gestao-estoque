@@ -19,68 +19,69 @@ interface AtualizarProdutoDTO {
 
 export class ProdutoService {
   async listarTodos(): Promise<Produto[]> {
-    try {
-      return await prisma.produto.findMany({
-        include: {
-          categoria: true,
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.produto.findMany({
+      include: {
+        categoria: true,
+      },
+    });
   }
 
   async obterPorId(id: string): Promise<Produto | null> {
-    try {
-      return await prisma.produto.findUnique({
-        where: { id },
-        include: {
-          categoria: true,
-          fornecedores: {
-            include: {
-              fornecedor: true,
-            },
+    return await prisma.produto.findUnique({
+      where: { id },
+      include: {
+        categoria: true,
+        fornecedores: {
+          include: {
+            fornecedor: true,
           },
         },
-      });
-    } catch (error) {
-      throw error;
-    }
+      },
+    });
   }
 
   async criar(dados: CriarProdutoDTO): Promise<Produto> {
-    try {
-      // Implementar lógica de criação
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.produto.create({
+      data: {
+        nome: dados.nome,
+        descricao: dados.descricao,
+        codigo: dados.codigo,
+        preco: dados.preco,
+        categoriaId: dados.categoriaId,
+      },
+    });
   }
 
   async atualizar(id: string, dados: AtualizarProdutoDTO): Promise<Produto> {
-    try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.produto.update({
+      where: { id },
+      data: {
+        nome: dados.nome,
+        descricao: dados.descricao,
+        codigo: dados.codigo,
+        preco: dados.preco,
+        categoriaId: dados.categoriaId,
+      },
+    });
   }
 
   async excluir(id: string): Promise<void> {
-    try {
-      // Implementar lógica de exclusão
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    await prisma.produto.delete({
+      where: { id },
+    });
   }
 
   async buscarPorNome(nome: string): Promise<Produto[]> {
-    try {
-      // Implementar lógica de busca por nome
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
-    }
+    return await prisma.produto.findMany({
+      where: {
+        nome: {
+          contains: nome,
+          mode: 'insensitive',
+        },
+      },
+      include: {
+        categoria: true,
+      },
+    });
   }
 }

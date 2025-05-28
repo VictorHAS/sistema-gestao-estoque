@@ -1,13 +1,6 @@
-import { Usuario, Cargo } from '../generated/prisma';
-import { hashSenha, verificarSenha } from '../utils/senha';
+import { Usuario } from '../generated/prisma';
+import { verificarSenha } from '../utils/senha';
 import { prisma } from '../servidor';
-
-interface CriarUsuarioDTO {
-  nome: string;
-  email: string;
-  senha: string;
-  cargo?: Cargo;
-}
 
 interface LoginDTO {
   email: string;
@@ -15,33 +8,6 @@ interface LoginDTO {
 }
 
 export class AutenticacaoService {
-  async registrar(dados: CriarUsuarioDTO): Promise<Omit<Usuario, 'senha'>> {
-    try {
-      const usuarioExistente = await prisma.usuario.findUnique({
-        where: { email: dados.email },
-      });
-
-      if (usuarioExistente) {
-        throw new Error('Usuário com este email já existe');
-      }
-
-      const senhaHash = await hashSenha(dados.senha);
-
-      const usuario = await prisma.usuario.create({
-        data: {
-          nome: dados.nome,
-          email: dados.email,
-          senha: senhaHash,
-          cargo: dados.cargo || 'FUNCIONARIO',
-        },
-      });
-
-      const { senha, ...usuarioSemSenha } = usuario;
-      return usuarioSemSenha;
-    } catch (error) {
-      throw error;
-    }
-  }
 
   async login(dados: LoginDTO): Promise<Omit<Usuario, 'senha'>> {
     try {

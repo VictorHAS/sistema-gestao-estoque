@@ -10,11 +10,24 @@ export default async function (fastify: FastifyInstance) {
   // Middleware de autenticação para todas as rotas
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todas as categorias
+  // Listar todas as categorias ou buscar por nome
   fastify.get('/', {
     schema: {
+      tags: ['Categorias'],
+      summary: 'Listar categorias',
+      description: 'Lista todas as categorias ou busca por nome',
+      querystring: {
+        type: 'object',
+        properties: {
+          nome: {
+            type: 'string',
+            description: 'Buscar categorias por nome (busca parcial)'
+          }
+        }
+      },
       response: {
         200: {
+          description: 'Lista de categorias',
           type: 'array',
           items: {
             type: 'object',
@@ -28,25 +41,40 @@ export default async function (fastify: FastifyInstance) {
         }
       }
     }
-  }, categoriaController.listarTodas);
+  }, categoriaController.listarOuBuscar);
 
   // Obter categoria por ID
   fastify.get('/:id', {
     schema: {
+      tags: ['Categorias'],
+      summary: 'Obter categoria por ID',
+      description: 'Retorna os dados de uma categoria específica',
       params: {
         type: 'object',
         properties: {
-          id: { type: 'string' }
-        }
+          id: {
+            type: 'string',
+            description: 'ID da categoria'
+          }
+        },
+        required: ['id']
       },
       response: {
         200: {
+          description: 'Dados da categoria',
           type: 'object',
           properties: {
             id: { type: 'string' },
             nome: { type: 'string' },
             dataCriacao: { type: 'string', format: 'date-time' },
             dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        404: {
+          description: 'Categoria não encontrada',
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
           }
         }
       }
@@ -57,21 +85,37 @@ export default async function (fastify: FastifyInstance) {
   fastify.post('/', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Categorias'],
+      summary: 'Criar categoria',
+      description: 'Cria uma nova categoria (apenas ADMIN e GERENTE)',
       body: {
         type: 'object',
         required: ['nome'],
         properties: {
-          nome: { type: 'string' }
+          nome: {
+            type: 'string',
+            description: 'Nome da categoria'
+          }
         }
       },
       response: {
         201: {
+          description: 'Categoria criada com sucesso',
           type: 'object',
           properties: {
             id: { type: 'string' },
             nome: { type: 'string' },
             dataCriacao: { type: 'string', format: 'date-time' },
             dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        400: {
+          description: 'Categoria com este nome já existe',
+          type: 'object',
+          properties: {
+            statusCode: { type: 'number' },
+            error: { type: 'string' },
+            message: { type: 'string' }
           }
         }
       }
@@ -82,27 +126,56 @@ export default async function (fastify: FastifyInstance) {
   fastify.put('/:id', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Categorias'],
+      summary: 'Atualizar categoria',
+      description: 'Atualiza os dados de uma categoria (apenas ADMIN e GERENTE)',
       params: {
         type: 'object',
         properties: {
-          id: { type: 'string' }
-        }
+          id: {
+            type: 'string',
+            description: 'ID da categoria'
+          }
+        },
+        required: ['id']
       },
       body: {
         type: 'object',
         required: ['nome'],
         properties: {
-          nome: { type: 'string' }
+          nome: {
+            type: 'string',
+            description: 'Novo nome da categoria'
+          }
         }
       },
       response: {
         200: {
+          description: 'Categoria atualizada com sucesso',
           type: 'object',
           properties: {
             id: { type: 'string' },
             nome: { type: 'string' },
             dataCriacao: { type: 'string', format: 'date-time' },
             dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        400: {
+          description: 'Já existe uma categoria com este nome',
+          type: 'object',
+          properties: {
+            statusCode: { type: 'number' },
+            error: { type: 'string' },
+            message: { type: 'string' }
+          }
+        },
+        404: {
+          description: 'Categoria não encontrada',
+          type: 'object',
+          properties: {
+            statusCode: { type: 'number' },
+            error: { type: 'string' },
+            message: { type: 'string' }
           }
         }
       }
@@ -113,15 +186,41 @@ export default async function (fastify: FastifyInstance) {
   fastify.delete('/:id', {
     preHandler: [autorizar([Cargo.ADMIN])],
     schema: {
+      tags: ['Categorias'],
+      summary: 'Excluir categoria',
+      description: 'Exclui uma categoria do sistema (apenas ADMIN)',
       params: {
         type: 'object',
         properties: {
-          id: { type: 'string' }
-        }
+          id: {
+            type: 'string',
+            description: 'ID da categoria'
+          }
+        },
+        required: ['id']
       },
       response: {
         204: {
+          description: 'Categoria excluída com sucesso',
           type: 'null'
+        },
+        400: {
+          description: 'Categoria possui produtos associados',
+          type: 'object',
+          properties: {
+            statusCode: { type: 'number' },
+            error: { type: 'string' },
+            message: { type: 'string' }
+          }
+        },
+        404: {
+          description: 'Categoria não encontrada',
+          type: 'object',
+          properties: {
+            statusCode: { type: 'number' },
+            error: { type: 'string' },
+            message: { type: 'string' }
+          }
         }
       }
     }

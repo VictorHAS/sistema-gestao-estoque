@@ -8,8 +8,8 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 
 ## Membro 1: Victor Hermes
 ### Services/Controllers
-- [ ] Usuário (service e controller)
-- [ ] Categoria (service e controller)
+- [x] Usuário (service e controller)
+- [x] Categoria (service e controller)
 
 ### Setup e Configuração Inicial
 - [x] Setup inicial do projeto backend
@@ -18,14 +18,19 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 - [x] Setup do Prisma (instalação, configuração, integração)
 - [x] Criação das rotas iniciais
 - [x] Definição dos types globais
+- [x] Atualização do package.json com dependências corretas
 
 ### Funcionalidades
 - [x] Implementar autenticação JWT
 - [x] Implementar cadastro e login de usuários
 - [x] Implementar níveis de acesso (admin, gerente, funcionário)
 - [x] Documentar endpoints de autenticação e usuários no Swagger
-- [ ] Implementar CRUD de categorias
-- [ ] Implementar busca de categorias por nome
+- [x] Implementar CRUD de categorias
+- [x] Implementar busca de categorias por nome
+- [x] Implementar CRUD completo de usuários
+- [x] Implementar busca de usuários por nome
+- [x] Implementar listagem de usuários por cargo
+- [x] Implementar atualização de senha de usuários
 
 ---
 

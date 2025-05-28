@@ -1,13 +1,17 @@
 import { Compra, ItemCompra, StatusPedido } from '../generated/prisma';
 import { prisma } from '../servidor';
+import { EstoqueService } from './estoque.service';
 
-interface ItemCompraDTO {
+const estoqueService = new EstoqueService();
+
+
+export interface ItemCompraDTO {
   produtoId: string;
   quantidade: number;
   precoUnitario: number;
 }
 
-interface CriarCompraDTO {
+export interface CriarCompraDTO {
   fornecedorId: string;
   usuarioId: string;
   itens: ItemCompraDTO[];
@@ -69,40 +73,68 @@ export class CompraService {
     }
   }
 
-  async criar(dados: CriarCompraDTO): Promise<Compra> {
-    const novaCompra = await prisma.compra.create({
-      data: {
-        fornecedorId: dados.fornecedorId,
-        usuarioId: dados.usuarioId,
-        status: 'PENDENTE',
-        itens: {
-          create: dados.itens.map(item => ({
-            produtoId: item.produtoId,
-            quantidade: item.quantidade,
-            precoUnitario: item.precoUnitario,
-          })),
-        },
-      },
-      include: {
-        fornecedor: true,
-        usuario: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            cargo: true,
-          },
-        },
-        itens: {
-          include: {
-            produto: true,
-          },
-        },
-      },
-    });
+async criar(dados: CriarCompraDTO): Promise<Compra> {
+  // Calcular o valor total com base nos itens
+  const valorTotal = dados.itens.reduce((total, item) => {
+    return total + item.quantidade * item.precoUnitario;
+  }, 0);
 
-    return novaCompra;
+  const novaCompra = await prisma.compra.create({
+    data: {
+      fornecedorId: dados.fornecedorId,
+      usuarioId: dados.usuarioId,
+      status: 'PENDENTE',
+      valorTotal,
+      itens: {
+        create: dados.itens.map(item => ({
+          produtoId: item.produtoId,
+          quantidade: item.quantidade,
+          precoUnitario: item.precoUnitario,
+        })),
+      },
+    },
+    include: {
+      fornecedor: true,
+      usuario: {
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          cargo: true,
+        },
+      },
+      itens: {
+        include: {
+          produto: true,
+        },
+      },
+    },
+  });
+
+  const depositoPadrao = await prisma.deposito.findFirst();
+
+  if (!depositoPadrao) {
+    throw new Error('Nenhum depósito cadastrado para alocar o estoque');
   }
+
+  for (const item of dados.itens) {
+  try {
+    await estoqueService.adicionarEstoque(item.produtoId, depositoPadrao.id, item.quantidade);
+  } catch (err: any) {
+    if (err.message.includes('Estoque não encontrado')) {
+      await estoqueService.criar({
+        produtoId: item.produtoId,
+        depositoId: depositoPadrao.id,
+        quantidade: item.quantidade,
+      });
+    } else {
+      throw err;
+    }
+  }
+}
+  return novaCompra;
+}
+
 
   async atualizarStatus(id: string, dados: AtualizarStatusCompraDTO): Promise<Compra> {
     try {
@@ -122,5 +154,3 @@ export class CompraService {
     }
   }
 }
-
-

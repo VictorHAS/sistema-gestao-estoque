@@ -20,13 +20,23 @@ export class CategoriaController {
     this.categoriaService = new CategoriaService();
   }
 
-  listarTodas = async (request: FastifyRequest, reply: FastifyReply) => {
+    listarOuBuscar = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const categorias = await this.categoriaService.listarTodas();
+      const query = request.query as { nome?: string };
+
+      let categorias;
+      if (query.nome) {
+        // Se tem parâmetro nome, busca por nome
+        categorias = await this.categoriaService.buscarPorNome(query.nome);
+      } else {
+        // Se não tem parâmetro, lista todas
+        categorias = await this.categoriaService.listarTodas();
+      }
+
       return reply.code(200).send(categorias);
     } catch (error) {
       request.log.error(error);
-      return reply.code(500).send({ error: 'Erro ao listar categorias' });
+      return reply.code(500).send({ error: 'Erro ao listar/buscar categorias' });
     }
   };
 
@@ -79,6 +89,9 @@ export class CategoriaController {
       request.log.error(error);
       if (error instanceof Error && error.message === 'Categoria não encontrada') {
         return reply.code(404).send({ error: error.message });
+      }
+      if (error instanceof Error && error.message === 'Já existe uma categoria com este nome') {
+        return reply.code(400).send({ error: error.message });
       }
       return reply.code(500).send({ error: 'Erro ao atualizar categoria' });
     }

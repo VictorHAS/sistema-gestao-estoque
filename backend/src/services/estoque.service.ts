@@ -15,10 +15,7 @@ export class EstoqueService {
   async listarTodos(): Promise<Estoque[]> {
     try {
       return await prisma.estoque.findMany({
-        include: {
-          produto: true,
-          deposito: true,
-        },
+        include: { produto: true, deposito: true },
       });
     } catch (error) {
       throw error;
@@ -29,10 +26,7 @@ export class EstoqueService {
     try {
       return await prisma.estoque.findUnique({
         where: { id },
-        include: {
-          produto: true,
-          deposito: true,
-        },
+        include: { produto: true, deposito: true },
       });
     } catch (error) {
       throw error;
@@ -42,16 +36,8 @@ export class EstoqueService {
   async obterPorProdutoEDeposito(produtoId: string, depositoId: string): Promise<Estoque | null> {
     try {
       return await prisma.estoque.findUnique({
-        where: {
-          produtoId_depositoId: {
-            produtoId,
-            depositoId,
-          },
-        },
-        include: {
-          produto: true,
-          deposito: true,
-        },
+        where: { produtoId_depositoId: { produtoId, depositoId } },
+        include: { produto: true, deposito: true },
       });
     } catch (error) {
       throw error;
@@ -59,47 +45,101 @@ export class EstoqueService {
   }
 
   async criar(dados: CriarEstoqueDTO): Promise<Estoque> {
-    try {
-      // Implementar lógica de criação
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
+  try {
+    const existente = await this.obterPorProdutoEDeposito(dados.produtoId, dados.depositoId);
+    if (existente) {
+      throw new Error('Estoque já existe para este produto neste depósito.');
     }
+
+    console.log(`[ESTOQUE] Criando novo estoque: produto ${dados.produtoId}, depósito ${dados.depositoId}, quantidade ${dados.quantidade}`);
+
+    return await prisma.estoque.create({
+      data: {
+        produtoId: dados.produtoId,
+        depositoId: dados.depositoId,
+        quantidade: dados.quantidade,
+      },
+    });
+  } catch (error) {
+    throw error;
   }
+}
+
 
   async atualizar(id: string, dados: AtualizarEstoqueDTO): Promise<Estoque> {
     try {
-      // Implementar lógica de atualização
-      throw new Error('Método não implementado');
+      return await prisma.estoque.update({
+        where: { id },
+        data: { quantidade: dados.quantidade },
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  async adicionarEstoque(id: string, quantidade: number): Promise<Estoque> {
+  async atualizarQuantidade(produtoId: string, depositoId: string, quantidade: number): Promise<Estoque> {
     try {
-      // Implementar lógica para adicionar ao estoque
-      throw new Error('Método não implementado');
+      return await prisma.estoque.update({
+        where: { produtoId_depositoId: { produtoId, depositoId } },
+        data: { quantidade },
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  async removerEstoque(id: string, quantidade: number): Promise<Estoque> {
-    try {
-      // Implementar lógica para remover do estoque
-      throw new Error('Método não implementado');
-    } catch (error) {
-      throw error;
+  async adicionarEstoque(produtoId: string, depositoId: string, quantidade: number): Promise<Estoque> {
+  try {
+    const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
+    if (!estoqueAtual) {
+      throw new Error('Estoque não encontrado para adicionar quantidade.');
     }
+
+    const novaQuantidade = estoqueAtual.quantidade + quantidade;
+    console.log(`[ESTOQUE] Adicionando ${quantidade} unidades ao produto ${produtoId} no depósito ${depositoId}. Nova quantidade: ${novaQuantidade}`);
+
+    return await prisma.estoque.update({
+      where: { produtoId_depositoId: { produtoId, depositoId } },
+      data: { quantidade: novaQuantidade },
+    });
+  } catch (error) {
+    throw error;
   }
+}
+
+  async removerEstoque(produtoId: string, depositoId: string, quantidade: number): Promise<Estoque> {
+  try {
+    const estoqueAtual = await this.obterPorProdutoEDeposito(produtoId, depositoId);
+    if (!estoqueAtual) {
+      throw new Error('Estoque não encontrado para remover quantidade.');
+    }
+    if (estoqueAtual.quantidade < quantidade) {
+      throw new Error('Quantidade insuficiente em estoque para remoção.');
+    }
+
+    const novaQuantidade = estoqueAtual.quantidade - quantidade;
+    console.log(`[ESTOQUE] Removendo ${quantidade} unidades do produto ${produtoId} no depósito ${depositoId}. Nova quantidade: ${novaQuantidade}`);
+
+    return await prisma.estoque.update({
+      where: { produtoId_depositoId: { produtoId, depositoId } },
+      data: { quantidade: novaQuantidade },
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+
 
   async listarProdutosComEstoqueBaixo(limiteMinimo: number = 10): Promise<Estoque[]> {
     try {
-      // Implementar lógica para listar produtos com estoque baixo
-      throw new Error('Método não implementado');
+      return await prisma.estoque.findMany({
+        where: { quantidade: { lt: limiteMinimo } },
+        include: { produto: true, deposito: true },
+      });
     } catch (error) {
       throw error;
     }
   }
+
+  
 }

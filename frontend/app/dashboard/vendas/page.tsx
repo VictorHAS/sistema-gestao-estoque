@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, TrendingUp, DollarSign } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ShoppingCart, DollarSign, TrendingUp, Users } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,112 +30,276 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { PermissionGuard } from "@/components/permission-guard"
+import { VendaDialog } from "@/components/forms/venda/venda-dialog"
+import { VendaDetailsDialog } from "@/components/forms/venda/venda-details-dialog"
+import { DeleteVendaDialog } from "@/components/forms/venda/delete-venda-dialog"
 
 // Mock data - in a real app, this would come from your API
-const vendas = [
+const initialVendas = [
   {
     id: "1",
-    numero: "VND-001",
-    usuario: "João Silva",
-    dataVenda: "2025-01-20",
-    status: "CONCLUIDO",
-    valorTotal: 4599.98,
+    clienteNome: "Maria Santos",
+    clienteEmail: "maria.santos@email.com",
+    clienteTelefone: "(11) 99999-1111",
     itens: [
-      { produto: "Notebook Dell", quantidade: 2, precoUnitario: 2299.99 }
-    ]
+      {
+        produtoId: "1",
+        produto: "Notebook Dell Inspiron 15",
+        codigo: "NB001",
+        quantidade: 1,
+        precoUnitario: 2899.99
+      },
+      {
+        produtoId: "2",
+        produto: "Mouse Logitech MX Master 3",
+        codigo: "MS001",
+        quantidade: 1,
+        precoUnitario: 399.99
+      }
+    ],
+    total: 3299.98,
+    formaPagamento: "CARTAO_CREDITO" as const,
+    status: "PAGA" as const,
+    dataVenda: "2025-01-20T10:30:00",
+    vendedor: "João Silva",
+    observacoes: "Cliente preferencial"
   },
   {
     id: "2",
-    numero: "VND-002",
-    usuario: "Maria Santos",
-    dataVenda: "2025-01-19",
-    status: "PENDENTE",
-    valorTotal: 299.95,
+    clienteNome: "Carlos Oliveira",
+    clienteEmail: "",
+    clienteTelefone: "(11) 99999-2222",
     itens: [
-      { produto: "Mouse Logitech", quantidade: 5, precoUnitario: 59.99 }
-    ]
+      {
+        produtoId: "3",
+        produto: "Teclado Razer BlackWidow V3",
+        codigo: "TC001",
+        quantidade: 2,
+        precoUnitario: 189.99
+      }
+    ],
+    total: 379.98,
+    formaPagamento: "PIX" as const,
+    status: "PAGA" as const,
+    dataVenda: "2025-01-20T14:15:00",
+    vendedor: "Ana Costa",
+    observacoes: ""
   },
   {
     id: "3",
-    numero: "VND-003",
-    usuario: "Pedro Costa",
-    dataVenda: "2025-01-18",
-    status: "CONCLUIDO",
-    valorTotal: 189.90,
+    clienteNome: "Fernanda Lima",
+    clienteEmail: "fernanda@email.com",
+    clienteTelefone: "(11) 99999-3333",
     itens: [
-      { produto: "Teclado Mecânico", quantidade: 1, precoUnitario: 189.90 }
-    ]
+      {
+        produtoId: "4",
+        produto: "Monitor Samsung 24\"",
+        codigo: "MT001",
+        quantidade: 1,
+        precoUnitario: 799.99
+      },
+      {
+        produtoId: "5",
+        produto: "Cabo HDMI 2m",
+        codigo: "CB001",
+        quantidade: 2,
+        precoUnitario: 29.99
+      }
+    ],
+    total: 859.97,
+    formaPagamento: "DINHEIRO" as const,
+    status: "PENDENTE" as const,
+    dataVenda: "2025-01-19T16:45:00",
+    vendedor: "João Silva",
+    observacoes: "Aguardando confirmação do pagamento"
   },
   {
     id: "4",
-    numero: "VND-004",
-    usuario: "Ana Lima",
-    dataVenda: "2025-01-17",
-    status: "CANCELADO",
-    valorTotal: 2997.00,
+    clienteNome: "Roberto Mendes",
+    clienteEmail: "",
+    clienteTelefone: "(11) 99999-4444",
     itens: [
-      { produto: "Monitor Samsung", quantidade: 3, precoUnitario: 999.00 }
-    ]
-  },
-  {
-    id: "5",
-    numero: "VND-005",
-    usuario: "Carlos Oliveira",
-    dataVenda: "2025-01-16",
-    status: "CONCLUIDO",
-    valorTotal: 149.50,
-    itens: [
-      { produto: "Cabo HDMI", quantidade: 5, precoUnitario: 29.90 }
-    ]
+      {
+        produtoId: "1",
+        produto: "Notebook Dell Inspiron 15",
+        codigo: "NB001",
+        quantidade: 1,
+        precoUnitario: 2899.99
+      }
+    ],
+    total: 2899.99,
+    formaPagamento: "BOLETO" as const,
+    status: "CANCELADA" as const,
+    dataVenda: "2025-01-18T11:00:00",
+    vendedor: "Maria Silva",
+    observacoes: "Cliente desistiu da compra"
   },
 ]
 
-const statusOptions = [
-  "Todos os Status",
-  "PENDENTE",
-  "CONCLUIDO",
-  "CANCELADO"
-]
+const formasPagamentoMap = {
+  DINHEIRO: { label: "Dinheiro", icon: "💵" },
+  CARTAO_CREDITO: { label: "Cartão de Crédito", icon: "💳" },
+  CARTAO_DEBITO: { label: "Cartão de Débito", icon: "💳" },
+  PIX: { label: "PIX", icon: "📱" },
+  BOLETO: { label: "Boleto", icon: "📄" },
+}
 
 export default function VendasPage() {
+  const [vendas, setVendas] = useState(initialVendas)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("Todos os Status")
+  const [statusFilter, setStatusFilter] = useState<string>("TODOS")
+  const [isVendaDialogOpen, setIsVendaDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedVenda, setSelectedVenda] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const filteredVendas = vendas.filter(venda => {
-    const matchesSearch = venda.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         venda.usuario.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = selectedStatus === "Todos os Status" || venda.status === selectedStatus
+    const matchesSearch = venda.clienteNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         venda.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         venda.vendedor.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "TODOS" || venda.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const getStatusBadge = (status: string) => {
+  // Calculando estatísticas
+  const totalVendas = vendas.length
+  const vendasPagas = vendas.filter(v => v.status === "PAGA")
+  const faturamentoTotal = vendasPagas.reduce((acc, v) => acc + v.total, 0)
+  const vendasHoje = vendas.filter(v => {
+    const hoje = new Date().toDateString()
+    const dataVenda = new Date(v.dataVenda).toDateString()
+    return hoje === dataVenda
+  }).length
+  const clientesUnicos = new Set(vendas.map(v => v.clienteNome)).size
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "CONCLUIDO":
-        return <Badge variant="default">Concluído</Badge>
+      case "PAGA":
+        return "default"
       case "PENDENTE":
-        return <Badge variant="secondary">Pendente</Badge>
-      case "CANCELADO":
-        return <Badge variant="destructive">Cancelado</Badge>
+        return "secondary"
+      case "CANCELADA":
+        return "destructive"
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return "outline"
     }
   }
 
-  // Estatísticas
-  const totalVendas = filteredVendas.length
-  const vendasConcluidas = filteredVendas.filter(v => v.status === "CONCLUIDO").length
-  const vendasPendentes = filteredVendas.filter(v => v.status === "PENDENTE").length
-  const faturamentoTotal = filteredVendas
-    .filter(v => v.status === "CONCLUIDO")
-    .reduce((acc, venda) => acc + venda.valorTotal, 0)
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "PAGA":
+        return "✅"
+      case "PENDENTE":
+        return "⏳"
+      case "CANCELADA":
+        return "❌"
+      default:
+        return "❓"
+    }
+  }
+
+  const getFormaPagamentoInfo = (forma: string) => {
+    return formasPagamentoMap[forma as keyof typeof formasPagamentoMap] || { label: forma, icon: "💳" }
+  }
+
+  const handleCreateVenda = () => {
+    setSelectedVenda(null)
+    setIsVendaDialogOpen(true)
+  }
+
+  const handleEditVenda = (venda: any) => {
+    setSelectedVenda(venda)
+    setIsVendaDialogOpen(true)
+  }
+
+  const handleViewVenda = (venda: any) => {
+    setSelectedVenda(venda)
+    setIsDetailsDialogOpen(true)
+  }
+
+  const handleDeleteVenda = (venda: any) => {
+    setSelectedVenda(venda)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleVendaSubmit = async (data: any) => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const total = data.itens.reduce((acc: number, item: any) => acc + (item.quantidade * item.precoUnitario), 0)
+
+      if (selectedVenda) {
+        // Update existing venda
+        setVendas(prev => prev.map(venda =>
+          venda.id === selectedVenda.id
+            ? {
+                ...venda,
+                ...data,
+                total,
+                itens: data.itens.map((item: any) => ({
+                  ...item,
+                  produto: "Produto Atualizado", // This would come from the API
+                  codigo: "PROD001" // This would come from the API
+                }))
+              }
+            : venda
+        ) as any)
+        toast.success("Venda atualizada", {
+          description: "A venda foi atualizada com sucesso.",
+        })
+      } else {
+        // Create new venda
+        const newVenda = {
+          id: Date.now().toString(),
+          ...data,
+          clienteEmail: data.clienteEmail || "",
+          itens: data.itens.map((item: any) => ({
+            ...item,
+            produto: "Produto Selecionado", // This would come from the API
+            codigo: "PROD001" // This would come from the API
+          })),
+          total,
+          status: "PENDENTE" as const,
+          dataVenda: new Date().toISOString(),
+          vendedor: "Usuário Atual", // This would come from auth
+          observacoes: data.observacoes || ""
+        }
+        setVendas(prev => [newVenda as any, ...prev])
+        toast.success("Venda registrada", {
+          description: "A nova venda foi registrada com sucesso.",
+        })
+      }
+    } catch {
+      toast.error("Erro", {
+        description: "Ocorreu um erro ao salvar a venda.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteConfirm = async (vendaId: string) => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      setVendas(prev => prev.filter(venda => venda.id !== vendaId))
+      toast.success("Venda excluída", {
+        description: "A venda foi excluída com sucesso.",
+      })
+    } catch {
+      toast.error("Erro", {
+        description: "Ocorreu um erro ao excluir a venda.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -142,56 +307,65 @@ export default function VendasPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Vendas</h1>
           <p className="text-muted-foreground">
-            Gerencie as vendas e acompanhe o faturamento
+            Gerencie vendas e controle o faturamento
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Venda
-        </Button>
+        <PermissionGuard permission="vendas:create">
+          <Button onClick={handleCreateVenda}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Venda
+          </Button>
+        </PermissionGuard>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Cards de Estatísticas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Vendas</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalVendas}</div>
+            <p className="text-xs text-muted-foreground">
+              vendas registradas
+            </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas Concluídas</CardTitle>
-            <TrendingUp className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">{vendasConcluidas}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas Pendentes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">{vendasPendentes}</div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Faturamento Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              R$ {faturamentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
+            <div className="text-2xl font-bold text-green-600">R$ {faturamentoTotal.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              em vendas pagas
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vendas Hoje</CardTitle>
+            <TrendingUp className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{vendasHoje}</div>
+            <p className="text-xs text-muted-foreground">
+              realizadas hoje
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clientes Únicos</CardTitle>
+            <Users className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{clientesUnicos}</div>
+            <p className="text-xs text-muted-foreground">
+              clientes diferentes
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -200,7 +374,7 @@ export default function VendasPage() {
         <CardHeader>
           <CardTitle>Lista de Vendas</CardTitle>
           <CardDescription>
-            Visualize e gerencie todas as vendas realizadas
+            Histórico completo de vendas realizadas
           </CardDescription>
           <div className="flex items-center space-x-2">
             <div className="relative flex-1 max-w-sm">
@@ -212,52 +386,73 @@ export default function VendasPage() {
                 className="pl-8"
               />
             </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="TODOS">Todos os Status</option>
+              <option value="PAGA">Pagas</option>
+              <option value="PENDENTE">Pendentes</option>
+              <option value="CANCELADA">Canceladas</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Número</TableHead>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Data da Venda</TableHead>
-                <TableHead>Valor Total</TableHead>
-                <TableHead>Itens</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Pagamento</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Vendedor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredVendas.map((venda) => (
                 <TableRow key={venda.id}>
-                  <TableCell className="font-medium">{venda.numero}</TableCell>
-                  <TableCell>{venda.usuario}</TableCell>
                   <TableCell>
-                    {new Date(venda.dataVenda).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    R$ {venda.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    <span className="font-mono">#{venda.id}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {venda.itens.length} item(s)
+                    <div>
+                      <div className="font-medium">{venda.clienteNome}</div>
+                      <div className="text-sm text-muted-foreground">{venda.clienteTelefone}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-bold text-green-600">
+                      R$ {venda.total.toFixed(2)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(venda.status)}
+                    <div className="flex items-center gap-1">
+                      <span>{getFormaPagamentoInfo(venda.formaPagamento).icon}</span>
+                      <span className="text-sm">{getFormaPagamentoInfo(venda.formaPagamento).label}</span>
+                    </div>
                   </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusColor(venda.status)} className="flex items-center gap-1 w-fit">
+                      <span>{getStatusIcon(venda.status)}</span>
+                      {venda.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div>{new Date(venda.dataVenda).toLocaleDateString('pt-BR')}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(venda.dataVenda).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{venda.vendedor}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -268,24 +463,24 @@ export default function VendasPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <PermissionGuard permission="vendas:read">
-
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewVenda(venda)}>
                           <Eye className="mr-2 h-4 w-4" />
                           Visualizar
                         </DropdownMenuItem>
-                        </PermissionGuard>
-                        <PermissionGuard permission="vendas:update_status">
-                          <DropdownMenuItem>
+                        <PermissionGuard permission="vendas:read">
+                          <DropdownMenuItem onClick={() => handleEditVenda(venda)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Atualizar Status
+                            Editar
                           </DropdownMenuItem>
                         </PermissionGuard>
-                        <DropdownMenuSeparator />
                         <PermissionGuard permission="vendas:delete">
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleDeleteVenda(venda)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Cancelar
+                            Excluir
                           </DropdownMenuItem>
                         </PermissionGuard>
                       </DropdownMenuContent>
@@ -295,8 +490,37 @@ export default function VendasPage() {
               ))}
             </TableBody>
           </Table>
+
+          {filteredVendas.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhuma venda encontrada.
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <VendaDialog
+        open={isVendaDialogOpen}
+        onOpenChange={setIsVendaDialogOpen}
+        venda={selectedVenda}
+        onSubmit={handleVendaSubmit}
+        isLoading={isLoading}
+      />
+
+      <VendaDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        venda={selectedVenda}
+      />
+
+      <DeleteVendaDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        venda={selectedVenda}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

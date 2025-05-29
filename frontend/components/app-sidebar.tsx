@@ -10,8 +10,7 @@ import {
   TrendingUp,
   Warehouse,
   Tags,
-  FileText,
-  Settings,
+  // FileText,
   Home,
   Building2,
 } from "lucide-react"
@@ -26,7 +25,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarFooter,
 } from "@/components/ui/sidebar"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Permission } from "@/lib/permissions"
@@ -88,22 +86,17 @@ const menuItems: MenuItem[] = [
     icon: TrendingUp,
     permission: "vendas:read",
   },
-  {
-    title: "Relatórios",
-    url: "/dashboard/relatorios",
-    icon: FileText,
-    permission: "relatorios:view",
-  },
+  // {
+  //   title: "Relatórios",
+  //   url: "/dashboard/relatorios",
+  //   icon: FileText,
+  //   permission: "relatorios:view",
+  // },
   {
     title: "Usuários",
     url: "/dashboard/usuarios",
     icon: Users,
     permission: "usuarios:read",
-  },
-  {
-    title: "Configurações",
-    url: "/dashboard/configuracoes",
-    icon: Settings,
   },
 ]
 
@@ -165,18 +158,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/dashboard/configuracoes">
-                <Settings className="h-4 w-4" />
-                <span>Configurações</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   )
 }

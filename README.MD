@@ -159,6 +159,11 @@ Este Docker Compose configura:
    npm run dev
    ```
 
+6. Documentação no swagger
+ ```bash
+   http://localhost:3000/documentacao
+   ```
+
 ### Frontend
 
 Ainda não implementado.

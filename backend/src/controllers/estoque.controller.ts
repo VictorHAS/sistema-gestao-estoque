@@ -1,40 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { RouteGenericInterface } from 'fastify';
 import { EstoqueService } from '../services/estoque.service';
-import { AdicionarEstoqueRoute } from '../routes/estoque.routes'; 
-import { CriarEstoqueRoute } from '../routes/estoque.routes'; 
-
-interface Params {
-  produtoId: string;
-  depositoId: string;
-}
-
-interface ParamsWithId {
-  id: string;
-}
-
-interface AtualizarEstoqueBody {
-  quantidade: number;
-}
-
-interface AtualizarEstoqueParams {
-  produtoId: string;
-  depositoId: string;
-}
-
-interface RemoverEstoqueParams {
-  produtoId: string;
-  depositoId: string;
-}
-
-interface RemoverEstoqueBody {
-  quantidade: number;
-}
-
-interface EstoqueBaixoQuery {
-  limite?: string; // opcional, string por vir da query
-}
-
 
 export class EstoqueController {
   private estoqueService = new EstoqueService();
@@ -50,7 +15,7 @@ export class EstoqueController {
   };
 
   obterPorId = async (
-    request: FastifyRequest<{ Params: ParamsWithId }>,
+    request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply
   ) => {
     try {
@@ -68,8 +33,22 @@ export class EstoqueController {
     }
   };
 
+  criar = async (
+    request: FastifyRequest<{ Body: { produtoId: string; depositoId: string; quantidade: number } }>,
+    reply: FastifyReply
+  ) => {
+    try {
+      const { produtoId, depositoId, quantidade } = request.body;
+      const novoEstoque = await this.estoqueService.criar({ produtoId, depositoId, quantidade });
+      return reply.code(201).send(novoEstoque);
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ error: 'Erro ao criar item de estoque.' });
+    }
+  };
+
   atualizarQuantidade = async (
-    request: FastifyRequest<{ Params: AtualizarEstoqueParams; Body: AtualizarEstoqueBody }>,
+    request: FastifyRequest<{ Params: { produtoId: string; depositoId: string }; Body: { quantidade: number } }>,
     reply: FastifyReply
   ) => {
     try {
@@ -84,14 +63,33 @@ export class EstoqueController {
     }
   };
 
-  // Método REMOVER corrigido para usar Body no lugar de Querystring
-  remover = async (
-    request: FastifyRequest, // sem tipagem genérica explícita
+  adicionarEstoque = async (
+    request: FastifyRequest<{ Params: { produtoId: string; depositoId: string }; Body: { quantidade: number } }>,
     reply: FastifyReply
   ) => {
     try {
-      const { produtoId, depositoId } = request.params as RemoverEstoqueParams;
-      const { quantidade } = request.body as RemoverEstoqueBody;
+      const { produtoId, depositoId } = request.params;
+      const { quantidade } = request.body;
+
+      if (quantidade <= 0) {
+        return reply.code(400).send({ error: 'Quantidade inválida para adição' });
+      }
+
+      const estoqueAtualizado = await this.estoqueService.adicionarEstoque(produtoId, depositoId, quantidade);
+      return reply.code(200).send(estoqueAtualizado);
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ error: 'Erro ao adicionar ao estoque' });
+    }
+  };
+
+  remover = async (
+    request: FastifyRequest<{ Params: { produtoId: string; depositoId: string }; Body: { quantidade: number } }>,
+    reply: FastifyReply
+  ) => {
+    try {
+      const { produtoId, depositoId } = request.params;
+      const { quantidade } = request.body;
 
       if (!quantidade || quantidade <= 0) {
         return reply.code(400).send({ error: 'Quantidade inválida para remoção' });
@@ -106,7 +104,7 @@ export class EstoqueController {
   };
 
   verificarEstoqueBaixo = async (
-    request: FastifyRequest<{ Querystring: EstoqueBaixoQuery }>,
+    request: FastifyRequest<{ Querystring: { limite?: string } }>,
     reply: FastifyReply
   ) => {
     try {
@@ -125,7 +123,7 @@ export class EstoqueController {
   };
 
   obterPorProdutoEDeposito = async (
-    request: FastifyRequest<{ Params: Params }>,
+    request: FastifyRequest<{ Params: { produtoId: string; depositoId: string } }>,
     reply: FastifyReply
   ) => {
     try {
@@ -143,64 +141,4 @@ export class EstoqueController {
       return reply.code(500).send({ error: 'Erro ao obter estoque por produto e depósito' });
     }
   };
-
-
-adicionarEstoque = async (
-  request: FastifyRequest<AdicionarEstoqueRoute>,
-  reply: FastifyReply
-) => {
-  try {
-    const { produtoId, depositoId } = request.params;
-    const { quantidade } = request.body;
-
-    if (quantidade <= 0) {
-      return reply.code(400).send({ error: 'Quantidade inválida para adição' });
-    }
-
-    const estoqueAtualizado = await this.estoqueService.adicionarEstoque(
-      produtoId,
-      depositoId,
-      quantidade
-    );
-    return reply.code(200).send(estoqueAtualizado);
-  } catch (error) {
-    request.log.error(error);
-    return reply.code(500).send({ error: 'Erro ao adicionar ao estoque' });
-  }
-};
-
-
-criar = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  try {
-    // forçando o tipo do body aqui
-    const { produtoId, depositoId, quantidade } = request.body as {
-      produtoId: string;
-      depositoId: string;
-      quantidade: number;
-    };
-
-    const novoEstoque = await this.estoqueService.criar({
-      produtoId,
-      depositoId,
-      quantidade,
-    });
-
-    return reply.code(201).send(novoEstoque);
-  } catch (error) {
-    request.log.error(error);
-    return reply.code(500).send({ error: 'Erro ao criar item de estoque.' });
-  }
-};
-
-
-
-
-
-
-
-
-
 }

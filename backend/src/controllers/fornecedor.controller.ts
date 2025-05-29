@@ -37,8 +37,9 @@ export class FornecedorController {
   listarTodos = async (_req: FastifyRequest, reply: FastifyReply) => {
     try {
       const fornecedores = await this.fornecedorService.listarTodos();
-      reply.send(response(true, 'Lista de fornecedores', fornecedores));
+      reply.send(response(true, 'Lista de fornecedores obtida com sucesso', fornecedores));
     } catch (err) {
+      console.error(err);
       reply.status(500).send(response(false, 'Erro ao listar fornecedores'));
     }
   };
@@ -53,8 +54,9 @@ export class FornecedorController {
       if (!fornecedor) {
         return reply.status(404).send(response(false, 'Fornecedor não encontrado'));
       }
-      reply.send(response(true, 'Fornecedor encontrado', fornecedor));
+      reply.send(response(true, 'Fornecedor obtido com sucesso', fornecedor));
     } catch (err) {
+      console.error(err);
       reply.status(500).send(response(false, 'Erro ao obter fornecedor'));
     }
   };
@@ -67,6 +69,7 @@ export class FornecedorController {
       const novo = await this.fornecedorService.criar(request.body);
       reply.status(201).send(response(true, 'Fornecedor criado com sucesso', novo));
     } catch (err) {
+      console.error(err);
       reply.status(500).send(response(false, 'Erro ao criar fornecedor'));
     }
   };
@@ -81,8 +84,9 @@ export class FornecedorController {
       if (!atualizado) {
         return reply.status(404).send(response(false, 'Fornecedor não encontrado para atualização'));
       }
-      reply.send(response(true, 'Fornecedor atualizado com sucesso', atualizado));
+      reply.send(response(true, 'Atualização de fornecedor realizada com sucesso', atualizado));
     } catch (err) {
+      console.error(err);
       reply.status(500).send(response(false, 'Erro ao atualizar fornecedor'));
     }
   };
@@ -97,8 +101,9 @@ export class FornecedorController {
       if (!removido) {
         return reply.status(404).send(response(false, 'Fornecedor não encontrado para exclusão'));
       }
-      reply.status(204).send(); // sem corpo
+      reply.status(204).send(); // sem corpo, como exige o HTTP 204
     } catch (err) {
+      console.error(err);
       reply.status(500).send(response(false, 'Erro ao excluir fornecedor'));
     }
   };
@@ -111,11 +116,12 @@ export class FornecedorController {
       const { fornecedorId, produtoId } = request.params;
       const resultado = await this.fornecedorService.adicionarProduto(fornecedorId, produtoId);
       if (!resultado) {
-        return reply.status(400).send(response(false, 'Erro ao adicionar produto ao fornecedor'));
+        return reply.status(404).send(response(false, 'Fornecedor ou Produto não encontrado'));
       }
       reply.send(response(true, 'Produto adicionado ao fornecedor com sucesso'));
     } catch (err) {
-      reply.status(500).send(response(false, 'Erro ao adicionar produto'));
+      console.error(err);
+      reply.status(500).send(response(false, 'Erro ao adicionar produto ao fornecedor'));
     }
   };
 
@@ -127,11 +133,12 @@ export class FornecedorController {
       const { fornecedorId, produtoId } = request.params;
       const resultado = await this.fornecedorService.removerProduto(fornecedorId, produtoId);
       if (!resultado) {
-        return reply.status(400).send(response(false, 'Erro ao remover produto do fornecedor'));
+        return reply.status(404).send(response(false, 'Fornecedor ou Produto não encontrado'));
       }
       reply.send(response(true, 'Produto removido do fornecedor com sucesso'));
     } catch (err) {
-      reply.status(500).send(response(false, 'Erro ao remover produto'));
+      console.error(err);
+      reply.status(500).send(response(false, 'Erro ao remover produto do fornecedor'));
     }
   };
 }

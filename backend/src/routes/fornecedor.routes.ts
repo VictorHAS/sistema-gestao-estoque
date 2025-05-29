@@ -1,34 +1,105 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest, RouteGenericInterface } from 'fastify';
 import { FornecedorController } from '../controllers/fornecedor.controller';
-import { autenticar } from '../middlewares/autenticacao.middleware';
-import { autorizar } from '../middlewares/autenticacao.middleware';
+import { autenticar, autorizar } from '../middlewares/autenticacao.middleware';
 import { Cargo } from '../generated/prisma';
 
 const fornecedorController = new FornecedorController();
 
+// Tipagens de rota
+interface CriarFornecedorRoute extends RouteGenericInterface {
+  Body: {
+    nome: string;
+    email: string;
+    telefone?: string;
+    endereco?: string;
+  };
+}
+
+interface AtualizarFornecedorRoute extends RouteGenericInterface {
+  Params: { id: string };
+  Body: {
+    nome?: string;
+    email?: string;
+    telefone?: string;
+    endereco?: string;
+  };
+}
+
+interface IdParamsRoute extends RouteGenericInterface {
+  Params: { id: string };
+}
+
+interface ProdutoFornecedorParams extends RouteGenericInterface {
+  Params: {
+    fornecedorId: string;
+    produtoId: string;
+  };
+}
+
 export default async function (fastify: FastifyInstance) {
-  // Middleware de autenticação para todas as rotas
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todos os fornecedores
-  fastify.get('/', fornecedorController.listarTodos);
-
-  // Obter fornecedor por ID
-  fastify.get('/:id', {
+  fastify.get('/', {
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Listar fornecedores',
+      description: 'Retorna todos os fornecedores cadastrados no sistema',
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: { type: 'object' },
+            },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.listarTodos(request, reply));
+
+  fastify.get<IdParamsRoute>('/:id', {
+    schema: {
+      tags: ['Fornecedores'],
+      summary: 'Obter fornecedor por ID',
+      description: 'Retorna os dados de um fornecedor específico',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.obterPorId);
+          id: { type: 'string', description: 'ID do fornecedor' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' },
+          },
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.obterPorId(request, reply));
 
-  // Criar fornecedor (apenas ADMIN e GERENTE)
-  fastify.post('/', {
+  fastify.post<CriarFornecedorRoute>('/', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Criar fornecedor',
+      description: 'Cadastra um novo fornecedor no sistema',
       body: {
         type: 'object',
         required: ['nome', 'email'],
@@ -36,21 +107,35 @@ export default async function (fastify: FastifyInstance) {
           nome: { type: 'string' },
           email: { type: 'string', format: 'email' },
           telefone: { type: 'string' },
-          endereco: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.criar);
+          endereco: { type: 'string' },
+        },
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.criar(request, reply));
 
-  // Atualizar fornecedor (apenas ADMIN e GERENTE)
-  fastify.put('/:id', {
+  fastify.put<AtualizarFornecedorRoute>('/:id', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Atualizar fornecedor',
+      description: 'Atualiza os dados de um fornecedor existente',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
-        }
+          id: { type: 'string', description: 'ID do fornecedor' },
+        },
       },
       body: {
         type: 'object',
@@ -58,50 +143,122 @@ export default async function (fastify: FastifyInstance) {
           nome: { type: 'string' },
           email: { type: 'string', format: 'email' },
           telefone: { type: 'string' },
-          endereco: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.atualizar);
+          endereco: { type: 'string' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' },
+          },
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.atualizar(request, reply));
 
-  // Excluir fornecedor (apenas ADMIN)
-  fastify.delete('/:id', {
+  fastify.delete<IdParamsRoute>('/:id', {
     preHandler: [autorizar([Cargo.ADMIN])],
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Excluir fornecedor',
+      description: 'Remove um fornecedor do sistema. Apenas administradores podem executar.',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.excluir);
+          id: { type: 'string', description: 'ID do fornecedor a ser excluído' },
+        },
+      },
+      response: {
+        204: { description: 'Fornecedor excluído com sucesso' },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.excluir(request, reply));
 
-  // Adicionar produto ao fornecedor
-  fastify.post('/:fornecedorId/produtos/:produtoId', {
+  fastify.post<ProdutoFornecedorParams>('/:fornecedorId/produtos/:produtoId', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Adicionar produto ao fornecedor',
+      description: 'Vincula um produto a um fornecedor',
       params: {
         type: 'object',
+        required: ['fornecedorId', 'produtoId'],
         properties: {
-          fornecedorId: { type: 'string' },
-          produtoId: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.adicionarProduto);
+          fornecedorId: { type: 'string', description: 'ID do fornecedor' },
+          produtoId: { type: 'string', description: 'ID do produto' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.adicionarProduto(request, reply));
 
-  // Remover produto do fornecedor
-  fastify.delete('/:fornecedorId/produtos/:produtoId', {
+  fastify.delete<ProdutoFornecedorParams>('/:fornecedorId/produtos/:produtoId', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Fornecedores'],
+      summary: 'Remover produto do fornecedor',
+      description: 'Remove a relação entre um produto e um fornecedor',
       params: {
         type: 'object',
+        required: ['fornecedorId', 'produtoId'],
         properties: {
-          fornecedorId: { type: 'string' },
-          produtoId: { type: 'string' }
-        }
-      }
-    }
-  }, fornecedorController.removerProduto);
+          fornecedorId: { type: 'string', description: 'ID do fornecedor' },
+          produtoId: { type: 'string', description: 'ID do produto' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => fornecedorController.removerProduto(request, reply));
 }

@@ -19,16 +19,23 @@ export const opcoesSwagger: FastifyDynamicSwaggerOptions = {
         in: 'header',
       },
     },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  mode:'dynamic',
+  
+  mode: 'dynamic',
 };
 
 
 export const opcoesSwaggerUi: FastifySwaggerUiOptions = {
   routePrefix: '/documentacao',
   uiConfig: {
-    docExpansion: 'full',
+    docExpansion: 'none',
     deepLinking: true,
   },
   staticCSP: true,
+  transformStaticCSP: (header) => header,
 };

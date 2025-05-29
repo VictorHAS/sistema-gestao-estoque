@@ -1,60 +1,77 @@
 import { FastifyInstance } from 'fastify';
 import { CompraController } from '../controllers/compra.controller';
-import { autenticar } from '../middlewares/autenticacao.middleware';
-import { autorizar } from '../middlewares/autenticacao.middleware';
-import { Cargo } from '../generated/prisma';
+import { autenticar, autorizar } from '../middlewares/autenticacao.middleware';
+import { Cargo, StatusPedido } from '../generated/prisma';
 
 const compraController = new CompraController();
 
-export default async function (fastify: FastifyInstance) {
-  // Middleware de autenticação para todas as rotas
+export default async function compraRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todas as compras
-  fastify.get('/', CompraController.listarTodas);
-
-  // Obter compra por ID
-  fastify.get('/:id', {
+  fastify.get('/', {
     schema: {
+      tags: ['Compras'],
+      summary: 'Listar todas as compras',
+      description: 'Retorna todas as compras registradas',
+      response: {
+        200: { type: 'array', items: { type: 'object' } }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, compraController.listarTodas);
+
+  fastify.get<{ Params: { id: string } }>('/:id', {
+    schema: {
+      tags: ['Compras'],
+      summary: 'Obter compra por ID',
+      description: 'Retorna os detalhes de uma compra específica pelo ID',
       params: {
         type: 'object',
         properties: {
           id: { type: 'string' }
-        }
-      }
+        },
+        required: ['id']
+      },
+      response: {
+        200: { type: 'object' },
+        404: { type: 'object', properties: { mensagem: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
     }
-  }, CompraController.obterPorId);
+  }, compraController.obterPorId);
 
-fastify.post('/', {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['fornecedorId', 'itens'],
-      properties: {
-        fornecedorId: { type: 'string' },
-        itens: {
-          type: 'array',
-          items: {
-            type: 'object',
-            required: ['produtoId', 'quantidade', 'precoUnitario'],
-            properties: {
-              produtoId: { type: 'string' },
-              quantidade: { type: 'integer', minimum: 1 },
-              precoUnitario: { type: 'number', minimum: 0 }
-            }
-          }
-        }
-      }
-    }
-  }
-}, CompraController.criar);
-
-  // Atualizar status da compra (apenas ADMIN e GERENTE)
-  fastify.patch('/:id/status', {
-    preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
+  fastify.post('/', {
+    preHandler: autorizar([Cargo.ADMIN, Cargo.GERENTE]),
     schema: {
+      tags: ['Compras'],
+      summary: 'Criar nova compra',
+      description: 'Cria uma nova compra no sistema',
+      body: {
+        type: 'object',
+        required: ['produtoId', 'fornecedorId', 'quantidade'],
+        properties: {
+          produtoId: { type: 'string' },
+          fornecedorId: { type: 'string' },
+          quantidade: { type: 'integer', minimum: 1 }
+        }
+      },
+      response: {
+        201: { type: 'object' }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, compraController.criar);
+
+
+  fastify.patch<{ Params: { id: string }; Body: { status: StatusPedido } }>('/:id/status', {
+    preHandler: autorizar([Cargo.ADMIN, Cargo.GERENTE]),
+    schema: {
+      tags: ['Compras'],
+      summary: 'Atualizar status da compra',
+      description: 'Atualiza o status de uma compra existente',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
           id: { type: 'string' }
         }
@@ -63,22 +80,35 @@ fastify.post('/', {
         type: 'object',
         required: ['status'],
         properties: {
-          status: { type: 'string', enum: ['PENDENTE', 'CONCLUIDO', 'CANCELADO'] }
+          status: { type: 'string', enum: Object.values(StatusPedido) }
         }
-      }
+      },
+      response: {
+        200: { type: 'object' },
+        400: { type: 'object', properties: { mensagem: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
     }
-  }, CompraController.atualizarStatus);
+  }, compraController.atualizarStatus);
 
-  // Excluir compra (apenas ADMIN)
-  fastify.delete('/:id', {
-    preHandler: [autorizar([Cargo.ADMIN])],
+  fastify.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: autorizar([Cargo.ADMIN]),
     schema: {
+      tags: ['Compras'],
+      summary: 'Excluir compra',
+      description: 'Exclui uma compra com base no ID informado',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
           id: { type: 'string' }
         }
-      }
+      },
+      response: {
+        204: { description: 'Compra excluída com sucesso' },
+        500: { type: 'object', properties: { mensagem: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
     }
-  }, CompraController.excluir);
+  }, compraController.excluir);
 }

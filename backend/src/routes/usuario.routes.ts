@@ -1,39 +1,31 @@
 import { FastifyInstance } from 'fastify';
 import { UsuarioController } from '../controllers/usuario.controller';
-import { autenticar } from '../middlewares/autenticacao.middleware';
-import { autorizar } from '../middlewares/autenticacao.middleware';
+import { autenticar, autorizar } from '../middlewares/autenticacao.middleware';
 import { Cargo } from '../generated/prisma';
 
 const usuarioController = new UsuarioController();
 
 export default async function (fastify: FastifyInstance) {
-  // Middleware de autenticação para todas as rotas
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todos os usuários ou filtrar por nome/cargo (apenas ADMIN e GERENTE)
-  fastify.get('/', {
+  // Listar usuários
+  fastify.route({
+    method: 'GET',
+    url: '/',
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
       tags: ['Usuários'],
       summary: 'Listar usuários',
-      description: 'Lista todos os usuários ou filtra por nome e/ou cargo',
+      description: 'Lista todos os usuários ou filtra por nome e cargo',
       querystring: {
         type: 'object',
         properties: {
-          nome: {
-            type: 'string',
-            description: 'Filtrar usuários por nome (busca parcial)'
-          },
-          cargo: {
-            type: 'string',
-            enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'],
-            description: 'Filtrar usuários por cargo'
-          }
+          nome: { type: 'string' },
+          cargo: { type: 'string', enum: Object.values(Cargo) }
         }
       },
       response: {
         200: {
-          description: 'Lista de usuários',
           type: 'array',
           items: {
             type: 'object',
@@ -41,18 +33,20 @@ export default async function (fastify: FastifyInstance) {
               id: { type: 'string' },
               email: { type: 'string' },
               nome: { type: 'string' },
-              cargo: { type: 'string', enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'] },
-              dataCriacao: { type: 'string', format: 'date-time' },
-              dataAtualizacao: { type: 'string', format: 'date-time' }
+              cargo: { type: 'string', enum: Object.values(Cargo) }
             }
           }
         }
-      }
-    }
-  }, usuarioController.listarOuFiltrar);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.listarOuFiltrar(request, reply)
+  });
 
   // Obter usuário por ID
-  fastify.get('/:id', {
+  fastify.route({
+    method: 'GET',
+    url: '/:id',
     schema: {
       tags: ['Usuários'],
       summary: 'Obter usuário por ID',
@@ -60,263 +54,164 @@ export default async function (fastify: FastifyInstance) {
       params: {
         type: 'object',
         properties: {
-          id: {
-            type: 'string',
-            description: 'ID do usuário'
-          }
+          id: { type: 'string' }
         },
         required: ['id']
       },
       response: {
         200: {
-          description: 'Dados do usuário',
           type: 'object',
           properties: {
             id: { type: 'string' },
             email: { type: 'string' },
             nome: { type: 'string' },
-            cargo: { type: 'string', enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'] },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
+            cargo: { type: 'string', enum: Object.values(Cargo) }
           }
         },
         404: {
-          description: 'Usuário não encontrado',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
+            mensagem: { type: 'string' }
           }
         }
-      }
-    }
-  }, usuarioController.obterPorId);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.obterPorId(request, reply)
+  });
 
-  // Criar usuário (apenas ADMIN)
-  fastify.post('/', {
+  // Criar usuário
+  fastify.route({
+    method: 'POST',
+    url: '/',
     preHandler: [autorizar([Cargo.ADMIN])],
     schema: {
       tags: ['Usuários'],
       summary: 'Criar usuário',
-      description: 'Cria um novo usuário no sistema (apenas ADMIN)',
+      description: 'Cria um novo usuário no sistema',
       body: {
         type: 'object',
         required: ['email', 'senha', 'nome'],
         properties: {
-          email: {
-            type: 'string',
-            format: 'email',
-            description: 'Email do usuário'
-          },
-          senha: {
-            type: 'string',
-            minLength: 6,
-            description: 'Senha do usuário (mínimo 6 caracteres)'
-          },
-          nome: {
-            type: 'string',
-            description: 'Nome completo do usuário'
-          },
-          cargo: {
-            type: 'string',
-            enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'],
-            description: 'Cargo do usuário (padrão: FUNCIONARIO)'
-          }
+          email: { type: 'string', format: 'email' },
+          senha: { type: 'string', minLength: 6 },
+          nome: { type: 'string' },
+          cargo: { type: 'string', enum: Object.values(Cargo) }
         }
       },
       response: {
         201: {
-          description: 'Usuário criado com sucesso',
           type: 'object',
           properties: {
             id: { type: 'string' },
             email: { type: 'string' },
             nome: { type: 'string' },
-            cargo: { type: 'string', enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'] },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
-          }
-        },
-        400: {
-          description: 'Dados inválidos ou email já existe',
-          type: 'object',
-          properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
+            cargo: { type: 'string', enum: Object.values(Cargo) }
           }
         }
-      }
-    }
-  }, usuarioController.criar);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.criar(request, reply)
+  });
 
-  // Atualizar usuário (apenas ADMIN ou o próprio usuário)
-  fastify.put('/:id', {
+  // Atualizar usuário
+  fastify.route({
+    method: 'PUT',
+    url: '/:id',
     schema: {
       tags: ['Usuários'],
       summary: 'Atualizar usuário',
-      description: 'Atualiza os dados de um usuário (ADMIN pode atualizar qualquer usuário, outros apenas a si mesmos)',
+      description: 'Atualiza os dados de um usuário existente',
       params: {
         type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'ID do usuário'
-          }
-        },
+        properties: { id: { type: 'string' } },
         required: ['id']
       },
       body: {
         type: 'object',
         properties: {
-          email: {
-            type: 'string',
-            format: 'email',
-            description: 'Novo email do usuário'
-          },
-          nome: {
-            type: 'string',
-            description: 'Novo nome do usuário'
-          },
-          cargo: {
-            type: 'string',
-            enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'],
-            description: 'Novo cargo do usuário'
-          }
+          email: { type: 'string', format: 'email' },
+          nome: { type: 'string' },
+          cargo: { type: 'string', enum: Object.values(Cargo) }
         }
       },
       response: {
         200: {
-          description: 'Usuário atualizado com sucesso',
           type: 'object',
           properties: {
             id: { type: 'string' },
             email: { type: 'string' },
             nome: { type: 'string' },
-            cargo: { type: 'string', enum: ['ADMIN', 'GERENTE', 'FUNCIONARIO'] },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
-          }
-        },
-        400: {
-          description: 'Dados inválidos ou email já existe',
-          type: 'object',
-          properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
-          }
-        },
-        404: {
-          description: 'Usuário não encontrado',
-          type: 'object',
-          properties: {
-            error: { type: 'string' }
+            cargo: { type: 'string', enum: Object.values(Cargo) }
           }
         }
-      }
-    }
-  }, usuarioController.atualizar);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.atualizar(request, reply)
+  });
 
-  // Atualizar senha (apenas o próprio usuário)
-  fastify.patch('/:id/senha', {
+  // Atualizar senha
+  fastify.route({
+    method: 'PATCH',
+    url: '/:id/senha',
     schema: {
       tags: ['Usuários'],
       summary: 'Atualizar senha',
-      description: 'Atualiza a senha de um usuário (apenas o próprio usuário pode alterar sua senha)',
+      description: 'Atualiza a senha do usuário',
       params: {
         type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'ID do usuário'
-          }
-        },
+        properties: { id: { type: 'string' } },
         required: ['id']
       },
       body: {
         type: 'object',
         required: ['senhaAtual', 'novaSenha'],
         properties: {
-          senhaAtual: {
-            type: 'string',
-            description: 'Senha atual do usuário'
-          },
-          novaSenha: {
-            type: 'string',
-            minLength: 6,
-            description: 'Nova senha (mínimo 6 caracteres)'
-          }
+          senhaAtual: { type: 'string' },
+          novaSenha: { type: 'string', minLength: 6 }
         }
       },
       response: {
-        200: {
-          description: 'Senha atualizada com sucesso',
-          type: 'object',
-          properties: {
-            message: { type: 'string' }
-          }
-        },
+        204: { description: 'Senha atualizada com sucesso' },
         400: {
-          description: 'Senha atual incorreta',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
-          }
-        },
-        404: {
-          description: 'Usuário não encontrado',
-          type: 'object',
-          properties: {
-            error: { type: 'string' }
+            mensagem: { type: 'string' }
           }
         }
-      }
-    }
-  }, usuarioController.atualizarSenha);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.atualizarSenha(request, reply)
+  });
 
-  // Excluir usuário (apenas ADMIN)
-  fastify.delete('/:id', {
+  // Excluir usuário
+  fastify.route({
+    method: 'DELETE',
+    url: '/:id',
     preHandler: [autorizar([Cargo.ADMIN])],
     schema: {
       tags: ['Usuários'],
       summary: 'Excluir usuário',
-      description: 'Exclui um usuário do sistema (apenas ADMIN)',
+      description: 'Remove um usuário do sistema',
       params: {
         type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'ID do usuário'
-          }
-        },
+        properties: { id: { type: 'string' } },
         required: ['id']
       },
       response: {
-        204: {
-          description: 'Usuário excluído com sucesso',
-          type: 'null'
-        },
-        400: {
-          description: 'Usuário possui compras ou vendas associadas',
-          type: 'object',
-          properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
-          }
-        },
+        204: { description: 'Usuário removido com sucesso' },
         404: {
-          description: 'Usuário não encontrado',
           type: 'object',
           properties: {
-            error: { type: 'string' }
+            mensagem: { type: 'string' }
           }
         }
-      }
-    }
-  }, usuarioController.excluir);
+      },
+      security: [{ bearerAuth: [] }]
+    },
+    handler: (request, reply) => usuarioController.excluir(request, reply)
+  });
 }

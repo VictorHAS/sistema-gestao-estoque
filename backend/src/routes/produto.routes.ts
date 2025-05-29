@@ -1,46 +1,126 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { ProdutoController } from '../controllers/produto.controller';
-import { autenticar } from '../middlewares/autenticacao.middleware';
-import { autorizar } from '../middlewares/autenticacao.middleware';
+import { autenticar, autorizar } from '../middlewares/autenticacao.middleware';
 import { Cargo } from '../generated/prisma';
+
+// Interfaces para tipagem explícita
+interface CriarProdutoRoute {
+  Body: {
+    nome: string;
+    descricao?: string;
+    codigo: string;
+    preco: number;
+    categoriaId: string;
+  };
+}
+
+interface AtualizarProdutoRoute {
+  Params: { id: string };
+  Body: {
+    nome?: string;
+    descricao?: string;
+    codigo?: string;
+    preco?: number;
+    categoriaId?: string;
+  };
+}
+
+interface BuscarProdutoPorId {
+  Params: { id: string };
+}
+
+interface BuscarProdutoPorNome {
+  Params: { nome: string };
+}
 
 const produtoController = new ProdutoController();
 
 export default async function (fastify: FastifyInstance) {
-  // Middleware de autenticação para todas as rotas
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todos os produtos
-  fastify.get('/', produtoController.listarTodos);
-
-  // Obter produto por ID
-  fastify.get('/:id', {
+  fastify.get('/', {
     schema: {
+      tags: ['Produtos'],
+      summary: 'Listar produtos',
+      description: 'Retorna todos os produtos cadastrados no sistema',
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: { type: 'object' }
+            }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, produtoController.listarTodos);
+
+  fastify.get<BuscarProdutoPorId>('/:id', {
+    schema: {
+      tags: ['Produtos'],
+      summary: 'Obter produto por ID',
+      description: 'Retorna os dados de um produto específico',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
+          id: { type: 'string', description: 'ID do produto' }
         }
-      }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, produtoController.obterPorId);
 
-  // Buscar produtos por nome
-  fastify.get('/buscar/:nome', {
+  fastify.get<BuscarProdutoPorNome>('/buscar/:nome', {
     schema: {
+      tags: ['Produtos'],
+      summary: 'Buscar produto por nome',
+      description: 'Busca produtos cujo nome contenha o texto informado',
       params: {
         type: 'object',
+        required: ['nome'],
         properties: {
-          nome: { type: 'string' }
+          nome: { type: 'string', description: 'Nome parcial do produto' }
         }
-      }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: { type: 'object' }
+            }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, produtoController.buscarPorNome);
 
-  // Criar produto (apenas ADMIN e GERENTE)
-  fastify.post('/', {
+  fastify.post<CriarProdutoRoute>('/', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Produtos'],
+      summary: 'Criar produto',
+      description: 'Cadastra um novo produto',
       body: {
         type: 'object',
         required: ['nome', 'codigo', 'preco', 'categoriaId'],
@@ -51,18 +131,32 @@ export default async function (fastify: FastifyInstance) {
           preco: { type: 'number' },
           categoriaId: { type: 'string' }
         }
-      }
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, produtoController.criar);
 
-  // Atualizar produto (apenas ADMIN e GERENTE)
-  fastify.put('/:id', {
+  fastify.put<AtualizarProdutoRoute>('/:id', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
+      tags: ['Produtos'],
+      summary: 'Atualizar produto',
+      description: 'Atualiza os dados de um produto existente',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
+          id: { type: 'string', description: 'ID do produto' }
         }
       },
       body: {
@@ -74,20 +168,38 @@ export default async function (fastify: FastifyInstance) {
           preco: { type: 'number' },
           categoriaId: { type: 'string' }
         }
-      }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { type: 'object' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, produtoController.atualizar);
 
-  // Excluir produto (apenas ADMIN)
-  fastify.delete('/:id', {
+  fastify.delete<BuscarProdutoPorId>('/:id', {
     preHandler: [autorizar([Cargo.ADMIN])],
     schema: {
+      tags: ['Produtos'],
+      summary: 'Excluir produto',
+      description: 'Remove um produto do sistema',
       params: {
         type: 'object',
+        required: ['id'],
         properties: {
-          id: { type: 'string' }
+          id: { type: 'string', description: 'ID do produto' }
         }
-      }
+      },
+      response: {
+        204: { description: 'Produto excluído com sucesso' }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, produtoController.excluir);
 }

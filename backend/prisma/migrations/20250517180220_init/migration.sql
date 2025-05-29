@@ -140,6 +140,7 @@ CREATE TABLE "itens_venda" (
     CONSTRAINT "itens_venda_pkey" PRIMARY KEY ("id")
 );
 
+
 -- CreateIndex
 CREATE UNIQUE INDEX "usuarios_email_key" ON "usuarios"("email");
 

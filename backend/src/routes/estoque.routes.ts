@@ -1,11 +1,34 @@
-import { FastifyInstance } from 'fastify';
+import {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  RouteGenericInterface
+} from 'fastify';
 import { EstoqueController } from '../controllers/estoque.controller';
 import { autenticar, autorizar } from '../middlewares/autenticacao.middleware';
 import { Cargo } from '../generated/prisma';
 
 const estoqueController = new EstoqueController();
 
-export interface AdicionarEstoqueRoute {
+// Tipagens personalizadas
+interface IdParamsRoute extends RouteGenericInterface {
+  Params: { id: string };
+}
+
+interface ProdutoDepositoParams extends RouteGenericInterface {
+  Params: {
+    produtoId: string;
+    depositoId: string;
+  };
+}
+
+interface QuantidadeBody extends RouteGenericInterface {
+  Body: {
+    quantidade: number;
+  };
+}
+
+interface ProdutoDepositoQuantidadeRoute extends RouteGenericInterface {
   Params: {
     produtoId: string;
     depositoId: string;
@@ -15,7 +38,7 @@ export interface AdicionarEstoqueRoute {
   };
 }
 
-export interface CriarEstoqueRoute {
+interface CriarEstoqueRoute extends RouteGenericInterface {
   Body: {
     produtoId: string;
     depositoId: string;
@@ -23,98 +46,122 @@ export interface CriarEstoqueRoute {
   };
 }
 
-
+interface AlertaEstoqueQuery extends RouteGenericInterface {
+  Querystring: {
+    limite?: number;
+  };
+}
 
 export default async function estoqueRoutes(fastify: FastifyInstance) {
-  // Middleware de autenticação para todas as rotas
   fastify.addHook('preHandler', autenticar);
 
-  // Listar todo o estoque
-  fastify.get('/', estoqueController.listarTodos);
-
-  // Obter item de estoque por ID
-  fastify.get(
-    '/:id',
-    {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-          required: ['id'],
-        },
+  fastify.get('/', {
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Listar todo o estoque',
+      description: 'Retorna todos os registros de estoque cadastrados',
+      response: {
+        200: { type: 'array', items: { type: 'object' } }
       },
-    },
-    estoqueController.obterPorId
-  );
-
-  // Obter estoque por produto e depósito
-  fastify.get(
-    '/produto/:produtoId/deposito/:depositoId',
-    {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            produtoId: { type: 'string' },
-            depositoId: { type: 'string' },
-          },
-          required: ['produtoId', 'depositoId'],
-        },
-      },
-    },
-    estoqueController.obterPorProdutoEDeposito
-  );
-
-  // Criar item de estoque (apenas ADMIN e GERENTE)
-  fastify.post('/', {
-  preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
-  schema: {
-    body: {
-      type: 'object',
-      required: ['produtoId', 'depositoId', 'quantidade'],
-      properties: {
-        produtoId: { type: 'string' },
-        depositoId: { type: 'string' },
-        quantidade: { type: 'integer', minimum: 0 }
-      }
+      security: [{ bearerAuth: [] }]
     }
-  }
-}, estoqueController.criar);
+  }, async (request, reply) => estoqueController.listarTodos(request, reply));
 
-
-  // Atualizar quantidade de estoque (apenas ADMIN e GERENTE)
-  fastify.put(
-    '/produto/:produtoId/deposito/:depositoId',
-    {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            produtoId: { type: 'string' },
-            depositoId: { type: 'string' },
-          },
-          required: ['produtoId', 'depositoId'],
-        },
-        body: {
-          type: 'object',
-          required: ['quantidade'],
-          properties: {
-            quantidade: { type: 'integer', minimum: 0 },
-          },
-        },
+  fastify.get<IdParamsRoute>('/:id', {
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Obter estoque por ID',
+      description: 'Retorna um item de estoque pelo seu ID',
+      params: {
+        type: 'object',
+        required: ['id'],
+        properties: { id: { type: 'string' } }
       },
-    },
-    estoqueController.atualizarQuantidade
-  );
+      response: {
+        200: { type: 'object' },
+        404: { type: 'object', properties: { error: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request, reply) => estoqueController.obterPorId(request, reply));
 
-  // Adicionar ao estoque
-fastify.patch<AdicionarEstoqueRoute>(
-  '/produto/:produtoId/deposito/:depositoId/adicionar',
-  {
+  fastify.get<ProdutoDepositoParams>('/produto/:produtoId/deposito/:depositoId', {
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Obter estoque por produto e depósito',
+      description: 'Busca um item de estoque específico por produto e depósito',
+      params: {
+        type: 'object',
+        required: ['produtoId', 'depositoId'],
+        properties: {
+          produtoId: { type: 'string' },
+          depositoId: { type: 'string' }
+        }
+      },
+      response: {
+        200: { type: 'object' },
+        404: { type: 'object', properties: { error: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request, reply) => estoqueController.obterPorProdutoEDeposito(request, reply));
+
+  fastify.post<CriarEstoqueRoute>('/', {
+    preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Criar item de estoque',
+      description: 'Cria um novo registro de estoque',
+      body: {
+        type: 'object',
+        required: ['produtoId', 'depositoId', 'quantidade'],
+        properties: {
+          produtoId: { type: 'string' },
+          depositoId: { type: 'string' },
+          quantidade: { type: 'integer', minimum: 0 }
+        }
+      },
+      response: {
+        201: { type: 'object' }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request, reply) => estoqueController.criar(request, reply));
+
+  fastify.put<ProdutoDepositoQuantidadeRoute>('/produto/:produtoId/deposito/:depositoId', {
+    preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Atualizar quantidade em estoque',
+      description: 'Atualiza diretamente a quantidade de um item de estoque específico',
+      params: {
+        type: 'object',
+        required: ['produtoId', 'depositoId'],
+        properties: {
+          produtoId: { type: 'string' },
+          depositoId: { type: 'string' }
+        }
+      },
+      body: {
+        type: 'object',
+        required: ['quantidade'],
+        properties: {
+          quantidade: { type: 'integer', minimum: 0 }
+        }
+      },
+      response: {
+        200: { type: 'object' }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request, reply) => estoqueController.atualizarQuantidade(request, reply));
+
+  fastify.patch<ProdutoDepositoQuantidadeRoute>('/produto/:produtoId/deposito/:depositoId/adicionar', {
     preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE, Cargo.FUNCIONARIO])],
     schema: {
+      tags: ['Estoque'],
+      summary: 'Adicionar ao estoque',
+      description: 'Adiciona uma quantidade a um item de estoque já existente',
       params: {
         type: 'object',
         required: ['produtoId', 'depositoId'],
@@ -129,51 +176,40 @@ fastify.patch<AdicionarEstoqueRoute>(
         properties: {
           quantidade: { type: 'integer', minimum: 1 }
         }
-      }
+      },
+      response: {
+        200: { type: 'object' }
+      },
+      security: [{ bearerAuth: [] }]
     }
-  },
-  estoqueController.adicionarEstoque
-);
+  }, async (request, reply) => estoqueController.adicionarEstoque(request, reply));
 
-  // Remover do estoque
-  fastify.patch(
-    '/produto/:produtoId/deposito/:depositoId/remover',
-    {
-      preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE, Cargo.FUNCIONARIO])],
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            produtoId: { type: 'string' },
-            depositoId: { type: 'string' },
-          },
-          required: ['produtoId', 'depositoId'],
-        },
-        body: {
-          type: 'object',
-          required: ['quantidade'],
-          properties: {
-            quantidade: { type: 'integer', minimum: 1 },
-          },
-        },
+  fastify.patch<ProdutoDepositoQuantidadeRoute>('/produto/:produtoId/deposito/:depositoId/remover', {
+    preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE, Cargo.FUNCIONARIO])],
+    schema: {
+      tags: ['Estoque'],
+      summary: 'Remover do estoque',
+      description: 'Remove uma quantidade de um item de estoque específico',
+      params: {
+        type: 'object',
+        required: ['produtoId', 'depositoId'],
+        properties: {
+          produtoId: { type: 'string' },
+          depositoId: { type: 'string' }
+        }
       },
-    },
-    estoqueController.remover
-  );
-
-  // Listar produtos com estoque baixo
-  fastify.get(
-    '/alerta-baixo',
-    {
-      schema: {
-        querystring: {
-          type: 'object',
-          properties: {
-            limite: { type: 'integer', minimum: 1 },
-          },
-        },
+      body: {
+        type: 'object',
+        required: ['quantidade'],
+        properties: {
+          quantidade: { type: 'integer', minimum: 1 }
+        }
       },
-    },
-    estoqueController.verificarEstoqueBaixo
-  );
+      response: {
+        200: { type: 'object' },
+        400: { type: 'object', properties: { error: { type: 'string' } } }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request, reply) => estoqueController.remover(request, reply));
 }

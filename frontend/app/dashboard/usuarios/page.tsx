@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Shield, UserCheck } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,16 +31,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { PermissionGuard } from "@/components/permission-guard"
-import { usePermissions } from "@/hooks/use-permissions"
 import { useAuth } from "@/lib/auth"
+import { UserDialog } from "@/components/forms/usuarios/user-dialog"
+import { UserDetailsDialog } from "@/components/forms/usuarios/user-details-dialog"
+import { DeleteUserDialog } from "@/components/forms/usuarios/delete-user-dialog"
+import { demonstratePermissions } from "@/lib/demo-permissions"
 
 // Mock data - in a real app, this would come from your API
-const usuarios = [
+const initialUsuarios = [
   {
     id: "1",
     nome: "Admin Sistema",
     email: "admin@sistema.com",
-    cargo: "ADMIN",
+    cargo: "ADMIN" as const,
     dataCriacao: "2025-01-01",
     status: "Ativo"
   },
@@ -47,7 +51,7 @@ const usuarios = [
     id: "2",
     nome: "Maria Silva",
     email: "maria@sistema.com",
-    cargo: "GERENTE",
+    cargo: "GERENTE" as const,
     dataCriacao: "2025-01-02",
     status: "Ativo"
   },
@@ -55,7 +59,7 @@ const usuarios = [
     id: "3",
     nome: "João Santos",
     email: "joao@sistema.com",
-    cargo: "FUNCIONARIO",
+    cargo: "FUNCIONARIO" as const,
     dataCriacao: "2025-01-03",
     status: "Ativo"
   },
@@ -63,16 +67,22 @@ const usuarios = [
     id: "4",
     nome: "Ana Costa",
     email: "ana@sistema.com",
-    cargo: "FUNCIONARIO",
+    cargo: "FUNCIONARIO" as const,
     dataCriacao: "2025-01-04",
     status: "Inativo"
   },
 ]
 
 export default function UsuariosPage() {
+  const [usuarios, setUsuarios] = useState(initialUsuarios)
   const [searchTerm, setSearchTerm] = useState("")
   const [cargoFilter, setCargoFilter] = useState<string>("TODOS")
-  const { can, isAdmin } = usePermissions()
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<typeof initialUsuarios[0] | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const { user: currentUser } = useAuth()
 
   const filteredUsuarios = usuarios.filter(usuario => {
@@ -81,6 +91,10 @@ export default function UsuariosPage() {
     const matchesCargo = cargoFilter === "TODOS" || usuario.cargo === cargoFilter
     return matchesSearch && matchesCargo
   })
+
+  useEffect(() => {
+    demonstratePermissions()
+  }, [])
 
   const getCargoColor = (cargo: string) => {
     switch (cargo) {
@@ -106,6 +120,89 @@ export default function UsuariosPage() {
     }
   }
 
+  const handleCreateUser = () => {
+    setSelectedUser(null)
+    setIsUserDialogOpen(true)
+  }
+
+  const handleEditUser = (user: typeof initialUsuarios[0]) => {
+    setSelectedUser(user)
+    setIsUserDialogOpen(true)
+  }
+
+  const handleViewUser = (user: typeof initialUsuarios[0]) => {
+    setSelectedUser(user)
+    setIsDetailsDialogOpen(true)
+  }
+
+  const handleDeleteUser = (user: typeof initialUsuarios[0]) => {
+    setSelectedUser(user)
+    setIsDeleteDialogOpen(true)
+  }
+
+
+  const handleUserSubmit = async (data: {
+    nome: string;
+    email: string;
+    senha?: string;
+    cargo: "ADMIN" | "GERENTE" | "FUNCIONARIO";
+  }) => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      if (selectedUser) {
+        // Update existing user
+        setUsuarios(prev => prev.map(user =>
+          user.id === selectedUser.id
+            ? { ...user, ...data, dataAtualizacao: new Date().toISOString() }
+            : user
+        ))
+        toast.success("Usuário atualizado", {
+          description: "As informações do usuário foram atualizadas com sucesso.",
+        })
+      } else {
+        // Create new user
+        const newUser = {
+          id: Date.now().toString(),
+          ...data,
+          dataCriacao: new Date().toISOString(),
+          status: "Ativo"
+        }
+        setUsuarios(prev => [...prev, newUser])
+        toast.success("Usuário criado", {
+          description: "O novo usuário foi criado com sucesso.",
+        })
+      }
+    } catch {
+      toast.error("Erro", {
+        description: "Ocorreu um erro ao salvar o usuário.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteConfirm = async (userId: string) => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      setUsuarios(prev => prev.filter(user => user.id !== userId))
+      toast.success("Usuário excluído", {
+        description: "O usuário foi excluído com sucesso.",
+      })
+    } catch {
+      toast.error("Erro", {
+        description: "Ocorreu um erro ao excluir o usuário.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -116,7 +213,7 @@ export default function UsuariosPage() {
           </p>
         </div>
         <PermissionGuard permission="usuarios:create">
-          <Button>
+          <Button onClick={handleCreateUser}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Usuário
           </Button>
@@ -199,7 +296,7 @@ export default function UsuariosPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewUser(usuario)}>
                           <Eye className="mr-2 h-4 w-4" />
                           Visualizar
                         </DropdownMenuItem>
@@ -209,14 +306,14 @@ export default function UsuariosPage() {
                           permissions={["usuarios:update"]}
                           fallback={
                             currentUser?.id === usuario.id ? (
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditUser(usuario)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar Perfil
                               </DropdownMenuItem>
                             ) : null
                           }
                         >
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditUser(usuario)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
@@ -227,7 +324,10 @@ export default function UsuariosPage() {
                           {currentUser?.id !== usuario.id && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDeleteUser(usuario)}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                               </DropdownMenuItem>
@@ -250,22 +350,28 @@ export default function UsuariosPage() {
         </CardContent>
       </Card>
 
-      {/* Permission Summary for Development */}
-      {isAdmin && (
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle className="text-sm">🔐 Informações de Permissão (Admin View)</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs space-y-2">
-            <div>Gerenciar Usuários: {can.manageUsers ? "✅" : "❌"}</div>
-            <div>Visualizar Usuários: {can.viewUsers ? "✅" : "❌"}</div>
-            <div>Excluir Usuários: {can.deleteUsers ? "✅" : "❌"}</div>
-            <div className="mt-3 text-muted-foreground">
-              Esta seção só é visível para Administradores
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Dialogs */}
+      <UserDialog
+        open={isUserDialogOpen}
+        onOpenChange={setIsUserDialogOpen}
+        user={selectedUser}
+        onSubmit={handleUserSubmit}
+        isLoading={isLoading}
+      />
+
+      <UserDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        user={selectedUser}
+      />
+
+      <DeleteUserDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        user={selectedUser}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

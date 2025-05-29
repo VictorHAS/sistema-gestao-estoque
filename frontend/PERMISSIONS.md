@@ -170,7 +170,6 @@ fastify.post('/', {
 ```tsx
 import { demonstratePermissions } from "@/lib/demo-permissions"
 
-// No console do navegador
 demonstratePermissions()
 ```
 

@@ -175,7 +175,9 @@ model ItemVenda {
 
 enum StatusPedido {
   PENDENTE
+  APROVADO
   CONCLUIDO
+  RECEBIDO
   CANCELADO
 
   @@map("status_pedido")

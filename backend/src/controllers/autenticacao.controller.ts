@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AutenticacaoService } from '../services/autenticacao.service';
+import { successResponse, errorResponse } from '../utils/response.helper';
 
 interface LoginBody {
   email: string;
@@ -25,15 +26,15 @@ export class AutenticacaoController {
         email: usuario.email,
         cargo: usuario.cargo,
       });
-      return reply.code(200).send({ token, usuario });
+      return reply.code(200).send(successResponse('Login realizado com sucesso', { token, usuario }));
     } catch (error) {
       request.log.error(error);
       if (
         error instanceof Error && (error.message === 'Email ou senha inválidos' || error.message === 'Usuário não encontrado')
       ) {
-        return reply.code(401).send({ error: 'Email ou senha inválidos' });
+        return reply.code(401).send(errorResponse('Email ou senha inválidos'));
       }
-      return reply.code(500).send({ error: 'Erro ao fazer login' });
+      return reply.code(500).send(errorResponse('Erro ao fazer login'));
     }
   };
 
@@ -41,13 +42,13 @@ export class AutenticacaoController {
     try {
       const userId = request.usuario.id;
       const usuario = await this.autenticacaoService.obterUsuarioAtual(userId);
-      return reply.code(200).send(usuario);
+      return reply.code(200).send(successResponse('Usuário atual obtido com sucesso', usuario));
     } catch (error) {
       request.log.error(error);
       if (error instanceof Error && error.message === 'Usuário não encontrado') {
-        return reply.code(404).send({ error: error.message });
+        return reply.code(404).send(errorResponse('Usuário não encontrado'));
       }
-      return reply.code(500).send({ error: 'Erro ao obter usuário atual' });
+      return reply.code(500).send(errorResponse('Erro ao obter usuário atual'));
     }
   };
 }

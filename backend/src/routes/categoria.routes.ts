@@ -28,15 +28,31 @@ export default async function (fastify: FastifyInstance) {
       response: {
         200: {
           description: 'Lista de categorias',
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              nome: { type: 'string' },
-              dataCriacao: { type: 'string', format: 'date-time' },
-              dataAtualizacao: { type: 'string', format: 'date-time' }
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  dataCriacao: { type: 'string', format: 'date-time' },
+                  dataAtualizacao: { type: 'string', format: 'date-time' }
+                }
+              }
             }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       }
@@ -64,16 +80,33 @@ export default async function (fastify: FastifyInstance) {
           description: 'Dados da categoria',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            nome: { type: 'string' },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
         404: {
           description: 'Categoria não encontrada',
           type: 'object',
           properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
             error: { type: 'string' }
           }
         }
@@ -103,19 +136,35 @@ export default async function (fastify: FastifyInstance) {
           description: 'Categoria criada com sucesso',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            nome: { type: 'string' },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
         400: {
           description: 'Categoria com este nome já existe',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       }
@@ -154,28 +203,43 @@ export default async function (fastify: FastifyInstance) {
           description: 'Categoria atualizada com sucesso',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            nome: { type: 'string' },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
         400: {
           description: 'Já existe uma categoria com este nome',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         },
         404: {
           description: 'Categoria não encontrada',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
+            success: { type: 'boolean' },
             message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       }
@@ -201,25 +265,32 @@ export default async function (fastify: FastifyInstance) {
       },
       response: {
         204: {
-          description: 'Categoria excluída com sucesso',
-          type: 'null'
+          description: 'Categoria excluída com sucesso'
         },
         400: {
           description: 'Categoria possui produtos associados',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
-            message: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         },
         404: {
           description: 'Categoria não encontrada',
           type: 'object',
           properties: {
-            statusCode: { type: 'number' },
-            error: { type: 'string' },
+            success: { type: 'boolean' },
             message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       }

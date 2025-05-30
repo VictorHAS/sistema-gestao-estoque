@@ -31,17 +31,22 @@ export default async function (fastify: FastifyInstance) {
           description: 'Login bem-sucedido',
           type: 'object',
           properties: {
-            token: {
-              type: 'string',
-              description: 'Token JWT para autenticação'
-            },
-            usuario: {
+            data:{
               type: 'object',
               properties: {
-                id: { type: 'string' },
-                nome: { type: 'string' },
-                email: { type: 'string', format: 'email' },
-                cargo: { type: 'string' }
+              token: {
+                type: 'string',
+                description: 'Token JWT para autenticação'
+              },
+              usuario: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  email: { type: 'string', format: 'email' },
+                  cargo: { type: 'string' }
+                  }
+                }
               }
             }
           }
@@ -69,12 +74,17 @@ export default async function (fastify: FastifyInstance) {
           description: 'Dados do usuário autenticado',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            nome: { type: 'string' },
-            email: { type: 'string', format: 'email' },
-            cargo: { type: 'string' },
-            dataCriacao: { type: 'string', format: 'date-time' },
-            dataAtualizacao: { type: 'string', format: 'date-time' }
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                email: { type: 'string', format: 'email' },
+                cargo: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
         401: {

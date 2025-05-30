@@ -31,7 +31,65 @@ export default async function (fastify: FastifyInstance) {
   fastify.addHook('preHandler', autenticar);
 
   // Listar todas as vendas
-  fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/', {
+    schema: {
+      tags: ['Vendas'],
+      summary: 'Listar todas as vendas',
+      description: 'Retorna todas as vendas registradas',
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              dataVenda: { type: 'string', format: 'date-time' },
+              valorTotal: { type: 'number' },
+              status: { type: 'string', enum: ['PENDENTE', 'CONCLUIDO', 'CANCELADO'] },
+              usuarioId: { type: 'string' },
+              usuario: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  email: { type: 'string' }
+                }
+              },
+              itens: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    produtoId: { type: 'string' },
+                    quantidade: { type: 'integer' },
+                    precoUnitario: { type: 'number' },
+                    subtotal: { type: 'number' },
+                    produto: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        nome: { type: 'string' },
+                        codigo: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
+    }
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     return vendaController.listarTodas(request, reply);
   });
 
@@ -47,7 +105,63 @@ export default async function (fastify: FastifyInstance) {
         properties: {
           id: { type: 'string', description: 'ID da venda' }
         }
-      }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            dataVenda: { type: 'string', format: 'date-time' },
+            valorTotal: { type: 'number' },
+            status: { type: 'string', enum: ['PENDENTE', 'CONCLUIDO', 'CANCELADO'] },
+            usuarioId: { type: 'string' },
+            usuario: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                email: { type: 'string' }
+              }
+            },
+            itens: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  produtoId: { type: 'string' },
+                  quantidade: { type: 'integer' },
+                  precoUnitario: { type: 'number' },
+                  subtotal: { type: 'number' },
+                  produto: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' },
+                      codigo: { type: 'string' },
+                      preco: { type: 'number' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, async (
     request: FastifyRequest<ObterOuExcluirVendaRoute>,
@@ -79,7 +193,47 @@ export default async function (fastify: FastifyInstance) {
             }
           }
         }
-      }
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            dataVenda: { type: 'string', format: 'date-time' },
+            valorTotal: { type: 'number' },
+            status: { type: 'string', enum: ['PENDENTE', 'CONCLUIDO', 'CANCELADO'] },
+            usuarioId: { type: 'string' },
+            itens: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  produtoId: { type: 'string' },
+                  quantidade: { type: 'integer' },
+                  precoUnitario: { type: 'number' },
+                  subtotal: { type: 'number' }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, async (
     request: FastifyRequest<CriarVendaRoute>,
@@ -112,7 +266,33 @@ export default async function (fastify: FastifyInstance) {
             description: 'Novo status da venda'
           }
         }
-      }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            dataVenda: { type: 'string', format: 'date-time' },
+            valorTotal: { type: 'number' },
+            status: { type: 'string', enum: ['PENDENTE', 'CONCLUIDO', 'CANCELADO'] },
+            usuarioId: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, async (
     request: FastifyRequest<AtualizarStatusRoute>,
@@ -134,7 +314,24 @@ export default async function (fastify: FastifyInstance) {
         properties: {
           id: { type: 'string', description: 'ID da venda' }
         }
-      }
+      },
+      response: {
+        204: { description: 'Venda excluída com sucesso' },
+        404: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
+      },
+      security: [{ bearerAuth: [] }]
     }
   }, async (
     request: FastifyRequest<ObterOuExcluirVendaRoute>,

@@ -22,32 +22,10 @@ import {
   Mail,
   Calendar,
   Package,
-  FileText,
   Hash,
-  Truck
+  User
 } from "lucide-react"
-
-interface Compra {
-  id: string
-  fornecedorId: string
-  fornecedor: string
-  fornecedorEmail: string
-  fornecedorTelefone: string
-  itens: Array<{
-    produtoId: string
-    produto: string
-    codigo: string
-    quantidade: number
-    precoUnitario: number
-  }>
-  total: number
-  status: "PENDENTE" | "APROVADA" | "RECEBIDA" | "CANCELADA"
-  dataCompra: string
-  dataEntrega: string
-  dataRecebimento?: string
-  responsavel: string
-  observacoes?: string
-}
+import type { Compra } from "@/lib/api/types"
 
 interface CompraDetailsDialogProps {
   open: boolean
@@ -60,13 +38,15 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "RECEBIDA":
+      case "RECEBIDO":
         return "default"
-      case "APROVADA":
+      case "APROVADO":
         return "secondary"
       case "PENDENTE":
         return "outline"
-      case "CANCELADA":
+      case "CONCLUIDO":
+        return "default"
+      case "CANCELADO":
         return "destructive"
       default:
         return "outline"
@@ -75,24 +55,19 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "RECEBIDA":
+      case "RECEBIDO":
         return "✅"
-      case "APROVADA":
+      case "APROVADO":
         return "🔄"
       case "PENDENTE":
         return "⏳"
-      case "CANCELADA":
+      case "CONCLUIDO":
+        return "✅"
+      case "CANCELADO":
         return "❌"
       default:
         return "❓"
     }
-  }
-
-  const isAtrasada = () => {
-    if (compra.status === "RECEBIDA" || compra.status === "CANCELADA") return false
-    const hoje = new Date()
-    const dataEntrega = new Date(compra.dataEntrega)
-    return hoje > dataEntrega
   }
 
   return (
@@ -125,23 +100,8 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Data da Compra:</span>
-                  <span className="text-sm sm:text-base">{new Date(compra.dataCompra).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-sm sm:text-base">{new Date(compra.dataCriacao).toLocaleDateString('pt-BR')}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Entrega Prevista:</span>
-                  <span className="text-sm sm:text-base">{new Date(compra.dataEntrega).toLocaleDateString('pt-BR')}</span>
-                  {isAtrasada() && (
-                    <Badge variant="destructive" className="ml-2 text-xs">Atrasada</Badge>
-                  )}
-                </div>
-                {compra.dataRecebimento && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Data Recebimento:</span>
-                    <span className="text-sm sm:text-base">{new Date(compra.dataRecebimento).toLocaleDateString('pt-BR')}</span>
-                  </div>
-                )}
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Status:</span>
                   <Badge variant={getStatusColor(compra.status)} className="flex items-center gap-1">
@@ -150,8 +110,15 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Responsável:</span>
-                  <span className="break-words">{compra.responsavel}</span>
+                  <span className="break-words">{compra.usuario?.nome || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Valor Total:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    R$ {compra.valorTotal.toFixed(2)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -165,18 +132,29 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Nome:</span>
-                  <span className="break-words">{compra.fornecedor}</span>
+                  <span className="break-words">{compra.fornecedor?.nome || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Email:</span>
-                  <span className="break-all text-sm">{compra.fornecedorEmail}</span>
+                  <span className="break-all text-sm">{compra.fornecedor?.email || 'N/A'}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Telefone:</span>
-                  <span>{compra.fornecedorTelefone}</span>
-                </div>
+                {compra.fornecedor?.telefone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Telefone:</span>
+                    <span>{compra.fornecedor.telefone}</span>
+                  </div>
+                )}
+                {compra.fornecedor?.endereco && (
+                  <div className="flex items-start gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground mt-1" />
+                    <div>
+                      <span className="font-medium">Endereço:</span>
+                      <p className="text-sm text-muted-foreground mt-1">{compra.fornecedor.endereco}</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -210,36 +188,34 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
 
           {/* Coluna Direita */}
           <div className="space-y-6">
-            {/* Produtos Comprados */}
+            {/* Produto Principal da Compra */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Produtos Comprados</CardTitle>
+                <CardTitle className="text-lg">Produto da Compra</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {compra.itens.map((item, index) => (
-                    <div key={index} className="p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{item.produto}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Código: {item.codigo}
-                          </div>
-                          <div className="text-sm mt-1">
-                            {item.quantidade}x R$ {item.precoUnitario.toFixed(2)}
-                          </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{compra.produto?.nome || 'Produto não encontrado'}</span>
+                      </div>
+                      {compra.produto?.codigo && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          Código: {compra.produto.codigo}
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-blue-600">
-                            R$ {(item.quantidade * item.precoUnitario).toFixed(2)}
-                          </div>
-                        </div>
+                      )}
+                      <div className="text-sm mt-1">
+                        {compra.quantidade}x R$ {compra.precoUnitario.toFixed(2)}
                       </div>
                     </div>
-                  ))}
+                    <div className="text-right">
+                      <div className="font-bold text-blue-600">
+                        R$ {(compra.quantidade * compra.precoUnitario).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -250,41 +226,23 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
                 <CardTitle className="text-lg">Resumo Financeiro</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Resumo Financeiro */}
                 <div className="space-y-3">
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quantidade:</span>
+                    <span>{compra.quantidade} unidades</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço Unitário:</span>
+                    <span>R$ {compra.precoUnitario.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal:</span>
-                    <span>R$ {compra.total.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Frete:</span>
-                    <span>R$ 0,00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Impostos:</span>
-                    <span>R$ 0,00</span>
+                    <span>R$ {(compra.quantidade * compra.precoUnitario).toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-blue-600">R$ {compra.total.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Informações Adicionais */}
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium text-sm mb-2">Resumo da Compra</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Itens:</span>
-                      <div className="font-medium">{compra.itens.length} produto(s)</div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Quantidade:</span>
-                      <div className="font-medium">
-                        {compra.itens.reduce((acc, item) => acc + item.quantidade, 0)} un.
-                      </div>
-                    </div>
+                    <span className="text-blue-600">R$ {compra.valorTotal.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -292,28 +250,32 @@ export function CompraDetailsDialog({ open, onOpenChange, compra }: CompraDetail
                 <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
                   <h4 className="font-medium text-sm mb-2 text-green-700 dark:text-green-400">Impacto no Estoque</h4>
                   <div className="text-sm text-green-600 dark:text-green-300">
-                    <div>• Aumento total: {compra.itens.reduce((acc, item) => acc + item.quantidade, 0)} unidades</div>
-                    <div>• Valor adicionado: R$ {compra.total.toFixed(2)}</div>
-                    <div>• Status: {compra.status === "RECEBIDA" ? "Já incorporado" : "Pendente"}</div>
+                    <div>• Aumento total: {compra.quantidade} unidades</div>
+                    <div>• Valor adicionado: R$ {compra.valorTotal.toFixed(2)}</div>
+                    <div>• Status: {compra.status === "RECEBIDO" ? "Já incorporado" : "Pendente"}</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Observações */}
-            {compra.observacoes && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Observações</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-start gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground mt-1" />
-                    <p className="text-sm text-muted-foreground">{compra.observacoes}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Informações de Auditoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Auditoria</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">Criado em:</span>
+                  <span className="text-sm">{new Date(compra.dataCriacao).toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">Atualizado em:</span>
+                  <span className="text-sm">{new Date(compra.dataAtualizacao).toLocaleString('pt-BR')}</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </DialogContent>

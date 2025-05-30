@@ -8,23 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { SupplierForm } from "./supplier-form"
-
-interface Supplier {
-  id: string
-  nome: string
-  email: string
-  telefone: string
-  endereco: string
-  produtosAtivos: number
-  ultimaCompra: string
-  status: string
-}
+import type { Supplier } from "@/lib/api/types"
 
 interface SupplierFormData {
   nome: string
   email: string
-  telefone: string
-  endereco: string
+  telefone?: string
+  endereco?: string
 }
 
 interface SupplierDialogProps {

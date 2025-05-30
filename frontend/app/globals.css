@@ -235,7 +235,6 @@
     letter-spacing: var(--tracking-normal);
   }
 }
-
 /* Custom utilities for the inventory system */
 @layer utilities {
   .text-success {

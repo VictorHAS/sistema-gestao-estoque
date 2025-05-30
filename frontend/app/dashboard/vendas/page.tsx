@@ -35,8 +35,11 @@ import { VendaDialog } from "@/components/forms/venda/venda-dialog"
 import { VendaDetailsDialog } from "@/components/forms/venda/venda-details-dialog"
 import { DeleteVendaDialog } from "@/components/forms/venda/delete-venda-dialog"
 
+// Import types
+import type { VendaType, VendaFormData, VendaItem } from "@/lib/api/types"
+
 // Mock data - in a real app, this would come from your API
-const initialVendas = [
+const initialVendas: VendaType[] = [
   {
     id: "1",
     clienteNome: "Maria Santos",
@@ -59,8 +62,8 @@ const initialVendas = [
       }
     ],
     total: 3299.98,
-    formaPagamento: "CARTAO_CREDITO" as const,
-    status: "PAGA" as const,
+    formaPagamento: "CARTAO_CREDITO",
+    status: "PAGA",
     dataVenda: "2025-01-20T10:30:00",
     vendedor: "João Silva",
     observacoes: "Cliente preferencial"
@@ -80,8 +83,8 @@ const initialVendas = [
       }
     ],
     total: 379.98,
-    formaPagamento: "PIX" as const,
-    status: "PAGA" as const,
+    formaPagamento: "PIX",
+    status: "PAGA",
     dataVenda: "2025-01-20T14:15:00",
     vendedor: "Ana Costa",
     observacoes: ""
@@ -108,8 +111,8 @@ const initialVendas = [
       }
     ],
     total: 859.97,
-    formaPagamento: "DINHEIRO" as const,
-    status: "PENDENTE" as const,
+    formaPagamento: "DINHEIRO",
+    status: "PENDENTE",
     dataVenda: "2025-01-19T16:45:00",
     vendedor: "João Silva",
     observacoes: "Aguardando confirmação do pagamento"
@@ -129,8 +132,8 @@ const initialVendas = [
       }
     ],
     total: 2899.99,
-    formaPagamento: "BOLETO" as const,
-    status: "CANCELADA" as const,
+    formaPagamento: "BOLETO",
+    status: "CANCELADA",
     dataVenda: "2025-01-18T11:00:00",
     vendedor: "Maria Silva",
     observacoes: "Cliente desistiu da compra"
@@ -146,13 +149,13 @@ const formasPagamentoMap = {
 }
 
 export default function VendasPage() {
-  const [vendas, setVendas] = useState(initialVendas)
+  const [vendas, setVendas] = useState<VendaType[]>(initialVendas)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("TODOS")
   const [isVendaDialogOpen, setIsVendaDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedVenda, setSelectedVenda] = useState<any>(null)
+  const [selectedVenda, setSelectedVenda] = useState<VendaType | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const filteredVendas = vendas.filter(venda => {
@@ -209,28 +212,28 @@ export default function VendasPage() {
     setIsVendaDialogOpen(true)
   }
 
-  const handleEditVenda = (venda: any) => {
+  const handleEditVenda = (venda: VendaType) => {
     setSelectedVenda(venda)
     setIsVendaDialogOpen(true)
   }
 
-  const handleViewVenda = (venda: any) => {
+  const handleViewVenda = (venda: VendaType) => {
     setSelectedVenda(venda)
     setIsDetailsDialogOpen(true)
   }
 
-  const handleDeleteVenda = (venda: any) => {
+  const handleDeleteVenda = (venda: VendaType) => {
     setSelectedVenda(venda)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleVendaSubmit = async (data: any) => {
+  const handleVendaSubmit = async (data: VendaFormData) => {
     setIsLoading(true)
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const total = data.itens.reduce((acc: number, item: any) => acc + (item.quantidade * item.precoUnitario), 0)
+      const total = data.itens.reduce((acc: number, item: VendaItem) => acc + (item.quantidade * item.precoUnitario), 0)
 
       if (selectedVenda) {
         // Update existing venda
@@ -240,35 +243,35 @@ export default function VendasPage() {
                 ...venda,
                 ...data,
                 total,
-                itens: data.itens.map((item: any) => ({
+                itens: data.itens.map((item: VendaItem) => ({
                   ...item,
                   produto: "Produto Atualizado", // This would come from the API
                   codigo: "PROD001" // This would come from the API
                 }))
               }
             : venda
-        ) as any)
+        ) as VendaType[])
         toast.success("Venda atualizada", {
           description: "A venda foi atualizada com sucesso.",
         })
       } else {
         // Create new venda
-        const newVenda = {
+        const newVenda: VendaType = {
           id: Date.now().toString(),
           ...data,
           clienteEmail: data.clienteEmail || "",
-          itens: data.itens.map((item: any) => ({
+          itens: data.itens.map((item: VendaItem) => ({
             ...item,
             produto: "Produto Selecionado", // This would come from the API
             codigo: "PROD001" // This would come from the API
           })),
           total,
-          status: "PENDENTE" as const,
+          status: "PENDENTE",
           dataVenda: new Date().toISOString(),
           vendedor: "Usuário Atual", // This would come from auth
           observacoes: data.observacoes || ""
         }
-        setVendas(prev => [newVenda as any, ...prev])
+        setVendas(prev => [newVenda, ...prev])
         toast.success("Venda registrada", {
           description: "A nova venda foi registrada com sucesso.",
         })

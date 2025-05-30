@@ -34,6 +34,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
+// Import real hooks
+import { useCategorias } from "@/hooks/queries/useCategorias"
+import { useFornecedores } from "@/hooks/queries/useFornecedores"
+
 const productFormSchema = z.object({
   nome: z.string().min(2, {
     message: "Nome deve ter pelo menos 2 caracteres.",
@@ -66,30 +70,15 @@ interface ProductFormProps {
   isLoading?: boolean
 }
 
-// Mock data - in a real app, this would come from your API
-const categorias = [
-  { id: "1", nome: "Informática" },
-  { id: "2", nome: "Periféricos" },
-  { id: "3", nome: "Monitores" },
-  { id: "4", nome: "Cabos" },
-  { id: "5", nome: "Acessórios" },
-]
-
-const fornecedores = [
-  { id: "1", nome: "Dell Brasil Ltda" },
-  { id: "2", nome: "Logitech do Brasil" },
-  { id: "3", nome: "Razer Inc" },
-  { id: "4", nome: "Samsung Electronics" },
-  { id: "5", nome: "TechCorp Distribuidora" },
-  { id: "6", nome: "HP Brasil" },
-  { id: "7", nome: "Lenovo" },
-]
-
 export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: ProductFormProps) {
   const isEditing = !!initialData?.id
   const [selectedFornecedores, setSelectedFornecedores] = useState<string[]>(
     initialData?.fornecedorIds || []
   )
+
+  // Fetch data
+  const { data: categorias = [], isLoading: loadingCategorias } = useCategorias()
+  const { data: fornecedores = [], isLoading: loadingFornecedores } = useFornecedores()
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -208,7 +197,6 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
                         <Input
                           type="number"
                           step="0.01"
-                          min="0"
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -228,7 +216,7 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma categoria" />
+                            <SelectValue placeholder={loadingCategorias ? "Carregando..." : "Selecione uma categoria"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -248,78 +236,81 @@ export function ProductForm({ initialData, onSubmit, onCancel, isLoading }: Prod
 
             <Separator />
 
-            {/* Gestão de Fornecedores */}
+            {/* Fornecedores */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Fornecedores</h3>
 
-              {/* Adicionar Fornecedor */}
-              {availableFornecedores.length > 0 && (
+              {/* Selected Suppliers */}
+              {selectedFornecedores.length > 0 && (
                 <div className="mb-4">
-                  <FormLabel>Adicionar Fornecedor</FormLabel>
-                  <Select onValueChange={handleAddFornecedor}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Selecione um fornecedor para adicionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFornecedores.map((fornecedor) => (
-                        <SelectItem key={fornecedor.id} value={fornecedor.id}>
-                          {fornecedor.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="block text-sm font-medium mb-2">
+                    Fornecedores Selecionados
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedFornecedores.map((id) => (
+                      <Badge key={id} variant="secondary" className="px-3 py-1">
+                        {getFornecedorNome(id)}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFornecedor(id)}
+                          className="ml-2 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Lista de Fornecedores Selecionados */}
-              <FormField
-                control={form.control}
-                name="fornecedorIds"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Fornecedores Selecionados</FormLabel>
-                    <div className="mt-2">
-                      {selectedFornecedores.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                          Nenhum fornecedor selecionado
-                        </p>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {selectedFornecedores.map((fornecedorId) => (
-                            <Badge
-                              key={fornecedorId}
-                              variant="secondary"
-                              className="flex items-center gap-1 px-3 py-1"
-                            >
-                              {getFornecedorNome(fornecedorId)}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveFornecedor(fornecedorId)}
-                                className="ml-1 hover:bg-muted rounded-full p-0.5"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
+              {/* Add Supplier */}
+              {availableFornecedores.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="fornecedorIds"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Adicionar Fornecedor</FormLabel>
+                      <Select onValueChange={handleAddFornecedor}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={loadingFornecedores ? "Carregando..." : "Selecione um fornecedor"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableFornecedores.map((fornecedor) => (
+                            <SelectItem key={fornecedor.id} value={fornecedor.id}>
+                              {fornecedor.nome}
+                            </SelectItem>
                           ))}
-                        </div>
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {selectedFornecedores.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Selecione pelo menos um fornecedor para este produto.
+                </p>
+              )}
             </div>
 
             <Separator />
 
-            {/* Botões de Ação */}
-            <div className="flex justify-end space-x-3 pt-4">
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
               {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                <Button type="button" variant="outline" onClick={onCancel}>
                   Cancelar
                 </Button>
               )}
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading || loadingCategorias || loadingFornecedores}
+              >
                 {isLoading ? "Salvando..." : isEditing ? "Atualizar" : "Criar"}
               </Button>
             </div>

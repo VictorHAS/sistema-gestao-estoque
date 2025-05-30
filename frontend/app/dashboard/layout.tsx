@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { Header } from "@/components/header"
-import { AuthGuard } from "@/components/auth-guard"
+import { AuthGuardWrapper } from "@/components/auth-guard-wrapper"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
@@ -9,7 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <AuthGuard>
+    <AuthGuardWrapper>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -19,6 +19,6 @@ export default function DashboardLayout({
           </main>
         </SidebarInset>
       </SidebarProvider>
-    </AuthGuard>
+    </AuthGuardWrapper>
   )
 }

@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ItemVendaService } from '../services/itemVenda.service';
+import { successResponse, errorResponse } from '../utils/response.helper';
 
 interface ParamsWithVendaId {
   vendaId: string;
@@ -23,11 +24,10 @@ export class ItemController {
     try {
       const { vendaId } = request.params;
       const itens = await this.itemVendaService.listarPorVenda(vendaId);
-      return reply.code(200).send(itens);
+      return reply.code(200).send(successResponse('Itens da venda obtidos com sucesso', itens));
     } catch (error) {
       request.log.error(error);
-      return reply.code(500).send({ error: 'Erro ao listar itens da venda' });
+      return reply.code(500).send(errorResponse('Erro ao listar itens da venda'));
     }
   };
-
-  }
+}

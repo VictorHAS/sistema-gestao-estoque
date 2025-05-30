@@ -39,7 +39,6 @@ import { useFornecedores, useCreateFornecedor, useUpdateFornecedor, useDeleteFor
 import type { Fornecedor, Supplier } from "@/lib/api/types"
 
 export default function FornecedoresPage() {
-  // Use real hooks instead of mock data
   const { data: fornecedores = [], isLoading, error } = useFornecedores()
 
   // Mutation hooks
@@ -134,7 +133,7 @@ export default function FornecedoresPage() {
   const convertToSupplier = (fornecedor: Fornecedor): Supplier => ({
     ...fornecedor,
     produtosAtivos: fornecedor.produtos?.length || 0,
-    ultimaCompra: undefined,
+    ultimaCompra: '',
     status: 'ATIVO' as const,
     dataAtualizacao: fornecedor.dataAtualizacao || fornecedor.dataCriacao
   })

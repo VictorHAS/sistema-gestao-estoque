@@ -47,10 +47,15 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSubmit, isLoadi
           </DialogDescription>
         </DialogHeader>
         <SupplierForm
-          initialData={supplier || undefined}
+          initialData={supplier || {
+            nome: '',
+            email: '',
+            telefone: '',
+            endereco: '',
+          }}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          isLoading={isLoading}
+          isLoading={isLoading || false}
         />
       </DialogContent>
     </Dialog>

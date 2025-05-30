@@ -45,16 +45,16 @@ const menuItems: MenuItem[] = [
     permission: "dashboard:view",
   },
   {
-    title: "Produtos",
-    url: "/dashboard/produtos",
-    icon: Package,
-    permission: "produtos:read",
-  },
-  {
     title: "Categorias",
     url: "/dashboard/categorias",
     icon: Tags,
     permission: "categorias:read",
+  },
+  {
+    title: "Produtos",
+    url: "/dashboard/produtos",
+    icon: Package,
+    permission: "produtos:read",
   },
   {
     title: "Fornecedores",

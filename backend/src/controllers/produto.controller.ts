@@ -16,6 +16,7 @@ interface CriarProdutoBody {
   codigo: string;
   preco: number;
   categoriaId: string;
+  fornecedorIds?: string[];
 }
 
 interface AtualizarProdutoBody {
@@ -24,6 +25,7 @@ interface AtualizarProdutoBody {
   codigo?: string;
   preco?: number;
   categoriaId?: string;
+  fornecedorIds?: string[];
 }
 
 export class ProdutoController {
@@ -103,12 +105,12 @@ export class ProdutoController {
   ) => {
     try {
       const { id } = request.params;
-      const excluido = await this.produtoService.excluir(id);
-      if (!excluido) {
-        return reply.status(404).send(errorResponse('Produto não encontrado para exclusão'));
-      }
-      reply.status(204).send(); // No content
+      await this.produtoService.excluir(id);
+      reply.status(204).send();
     } catch (err) {
+      if (err instanceof Error && err.message === 'Produto não encontrado') {
+        return reply.status(404).send(errorResponse('Produto não encontrado'));
+      }
       reply.status(500).send(errorResponse('Erro ao excluir produto'));
     }
   };

@@ -62,7 +62,8 @@ export function useCreateCategoria() {
       toast.success('Categoria criada com sucesso!')
     },
     onError: (error: Error) => {
-      toast.error('Erro ao criar categoria: ' + error.message)
+      console.error('Erro ao criar categoria:', error)
+      toast.error(error.message || 'Erro ao criar categoria')
     },
   })
 }
@@ -126,6 +127,28 @@ export function useDeleteCategoria() {
     },
     onError: (error: Error) => {
       toast.error('Erro ao excluir categoria: ' + error.message)
+    },
+  })
+}
+
+// Função para validação assíncrona - verificar se categoria já existe
+export function useCheckCategoriaExists() {
+  return useMutation({
+    mutationFn: async (nome: string) => {
+      try {
+        const response = await api.categories.list({ nome })
+        const categorias = response.data
+
+        // Verificar se já existe uma categoria com esse nome exato
+        const existeCategoria = categorias.some(
+          categoria => categoria.nome.toLowerCase() === nome.toLowerCase()
+        )
+
+        return { exists: existeCategoria }
+      } catch (error) {
+        console.error('Erro ao verificar categoria:', error)
+        return { exists: false }
+      }
     },
   })
 }

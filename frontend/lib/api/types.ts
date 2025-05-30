@@ -53,6 +53,9 @@ export interface Categoria {
   nome: string;
   dataCriacao: string;
   dataAtualizacao: string;
+  _count: {
+    produtos: number;
+  };
 }
 
 export interface Produto {
@@ -65,6 +68,9 @@ export interface Produto {
   dataCriacao: string;
   dataAtualizacao: string;
   categoria?: Categoria;
+  fornecedores?: {
+    fornecedor: Fornecedor;
+  }[];
 }
 
 export interface Fornecedor {
@@ -189,7 +195,7 @@ export interface ApiResponse<T> {
 export interface ApiError {
   success: boolean;
   message: string;
-  erro?: string;
+  error?: string;
 }
 
 // ============================================================================
@@ -636,7 +642,7 @@ export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
   TIMEOUT: 30000,
   HEADERS: {
-    'Content-Type': 'application/json',
+    // Removido Content-Type dos headers padrão - será adicionado apenas quando necessário
   },
 } as const;
 

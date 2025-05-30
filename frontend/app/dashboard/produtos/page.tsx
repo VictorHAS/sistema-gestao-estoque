@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/card"
 import { ProdutosClient, StatsCards } from "./produtos-client"
 
+export const experimental_ppr = true
+
 // Server Component - Only layout and suspense, no API calls
 export default async function ProdutosPage() {
   return (
@@ -32,8 +34,6 @@ export default async function ProdutosPage() {
     </div>
   )
 }
-
-// Client Component for Stats - Removed since it's now in produtos-client.tsx
 
 // Loading Components
 function StatsCardsSkeleton() {

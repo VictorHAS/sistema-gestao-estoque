@@ -245,7 +245,7 @@ export default function CategoriasPage() {
             </TableHeader>
             <TableBody>
               {filteredCategorias.map((categoria) => {
-                const productCount = getCategoryProductCount(categoria.id)
+                const productCount = categoria._count.produtos
                 return (
                   <TableRow key={categoria.id}>
                     <TableCell className="font-medium">{categoria.nome}</TableCell>

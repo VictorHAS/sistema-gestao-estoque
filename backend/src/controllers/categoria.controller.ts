@@ -70,7 +70,7 @@ export class CategoriaController {
       return reply.code(201).send(successResponse('Categoria criada com sucesso', categoria));
     } catch (error) {
       request.log.error(error);
-      if (error instanceof Error && error.message === 'Categoria com este nome já existe') {
+      if (error instanceof Error && error.message === 'Já existe uma categoria com este nome!') {
         return reply.code(400).send(errorResponse('Erro ao criar categoria', error.message));
       }
       return reply.code(500).send(errorResponse('Erro ao criar categoria'));

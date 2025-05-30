@@ -40,7 +40,13 @@ export default async function (fastify: FastifyInstance) {
                   id: { type: 'string' },
                   nome: { type: 'string' },
                   dataCriacao: { type: 'string', format: 'date-time' },
-                  dataAtualizacao: { type: 'string', format: 'date-time' }
+                  dataAtualizacao: { type: 'string', format: 'date-time' },
+                  _count: {
+                    type: 'object',
+                    properties: {
+                      produtos: { type: 'number' }
+                    }
+                  }
                 }
               }
             }
@@ -88,7 +94,13 @@ export default async function (fastify: FastifyInstance) {
                 id: { type: 'string' },
                 nome: { type: 'string' },
                 dataCriacao: { type: 'string', format: 'date-time' },
-                dataAtualizacao: { type: 'string', format: 'date-time' }
+                dataAtualizacao: { type: 'string', format: 'date-time' },
+                _count: {
+                  type: 'object',
+                  properties: {
+                    produtos: { type: 'number' }
+                  }
+                }
               }
             }
           }
@@ -144,7 +156,13 @@ export default async function (fastify: FastifyInstance) {
                 id: { type: 'string' },
                 nome: { type: 'string' },
                 dataCriacao: { type: 'string', format: 'date-time' },
-                dataAtualizacao: { type: 'string', format: 'date-time' }
+                dataAtualizacao: { type: 'string', format: 'date-time' },
+                _count: {
+                  type: 'object',
+                  properties: {
+                    produtos: { type: 'number' }
+                  }
+                }
               }
             }
           }
@@ -211,7 +229,13 @@ export default async function (fastify: FastifyInstance) {
                 id: { type: 'string' },
                 nome: { type: 'string' },
                 dataCriacao: { type: 'string', format: 'date-time' },
-                dataAtualizacao: { type: 'string', format: 'date-time' }
+                dataAtualizacao: { type: 'string', format: 'date-time' },
+                _count: {
+                  type: 'object',
+                  properties: {
+                    produtos: { type: 'number' }
+                  }
+                }
               }
             }
           }
@@ -248,7 +272,7 @@ export default async function (fastify: FastifyInstance) {
 
   // Excluir categoria (apenas ADMIN)
   fastify.delete('/:id', {
-    preHandler: [autorizar([Cargo.ADMIN])],
+    preHandler: [autorizar([Cargo.ADMIN, Cargo.GERENTE])],
     schema: {
       tags: ['Categorias'],
       summary: 'Excluir categoria',

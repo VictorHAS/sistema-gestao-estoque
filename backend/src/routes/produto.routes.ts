@@ -108,7 +108,29 @@ export default async function (fastify: FastifyInstance) {
                   type: 'object',
                   properties: {
                     id: { type: 'string' },
-                    nome: { type: 'string' }
+                    nome: { type: 'string' },
+                    dataCriacao: { type: 'string', format: 'date-time' },
+                  }
+                },
+                fornecedores: {
+                  type: 'array',
+                  nullable: true,
+                  items: {
+                    type: 'object',
+                    properties: {
+                      fornecedorId: { type: 'string' },
+                      produtoId: { type: 'string' },
+                      dataCriacao: { type: 'string', format: 'date-time' },
+                      dataAtualizacao: { type: 'string', format: 'date-time' },
+                      fornecedor: {
+                        type: 'object',
+                        nullable: true,
+                        properties: {
+                          id: { type: 'string' },
+                          nome: { type: 'string' }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -203,7 +225,8 @@ export default async function (fastify: FastifyInstance) {
           descricao: { type: 'string' },
           codigo: { type: 'string' },
           preco: { type: 'number' },
-          categoriaId: { type: 'string' }
+          categoriaId: { type: 'string' },
+          fornecedorIds: { type: 'array', items: { type: 'string' } }
         }
       },
       response: {

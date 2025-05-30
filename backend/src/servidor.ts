@@ -40,6 +40,9 @@ servidor.register(fastifyJwt, {
 
 servidor.register(fastifyCors, {
   origin: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 });
 
 servidor.register(fastifySwagger, opcoesSwagger);

@@ -13,6 +13,11 @@ export class CategoriaService {
   async listarTodas(): Promise<Categoria[]> {
     try {
       return await prisma.categoria.findMany({
+        include: {
+          _count: {
+            select: { produtos: true }
+          }
+        },
         orderBy: {
           nome: 'asc'
         }
@@ -27,7 +32,10 @@ export class CategoriaService {
       return await prisma.categoria.findUnique({
         where: { id },
         include: {
-          produtos: true
+          produtos: true,
+          _count: {
+            select: { produtos: true }
+          }
         }
       });
     } catch (error) {
@@ -61,11 +69,16 @@ export class CategoriaService {
       });
 
       if (categoriaExistente) {
-        throw new Error('Categoria com este nome já existe');
+        throw new Error('Já existe uma categoria com este nome!');
       }
 
       return await prisma.categoria.create({
         data: dados,
+        include: {
+          _count: {
+            select: { produtos: true }
+          }
+        }
       });
     } catch (error) {
       throw error;
@@ -100,6 +113,11 @@ export class CategoriaService {
       return await prisma.categoria.update({
         where: { id },
         data: dados,
+        include: {
+          _count: {
+            select: { produtos: true }
+          }
+        }
       });
     } catch (error) {
       throw error;

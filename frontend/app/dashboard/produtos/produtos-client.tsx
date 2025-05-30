@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { ProductDialog } from "@/components/forms/produtos/product-dialog"
+import { ProductDetailsDialog } from "@/components/forms/produtos/product-details-dialog"
 
 // Import React Query hooks
 import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } from "@/hooks/queries/useProdutos"
@@ -125,20 +126,18 @@ export function ProdutosClient() {
   const [searchTerm, setSearchTerm] = useState("")
   const [categoriaFilter, setCategoriaFilter] = useState<string>("TODAS")
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
   // Create map for displaying category names
   const categoriasTyped = categorias as Categoria[]
-  const categoriasMap = categoriasTyped.reduce((acc: Record<string, string>, cat: Categoria) => ({
-    ...acc,
-    [cat.id]: cat.nome
-  }), {})
 
   const filteredProdutos = produtos.filter(produto => {
     const matchesSearch = produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          produto.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         categoriasMap[produto.categoriaId]?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategoria = categoriaFilter === "TODAS" || produto.categoriaId === categoriaFilter
+                         produto.categoria?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategoria = categoriaFilter === "TODAS" || produto.categoria?.id === categoriaFilter
     return matchesSearch && matchesCategoria
   })
 
@@ -157,8 +156,8 @@ export function ProdutosClient() {
   }
 
   const handleViewProduct = (product: Produto) => {
-    // TODO: Implement view functionality when dialog is fixed
-    console.log("View product:", product)
+    setSelectedProductId(product.id)
+    setIsDetailsDialogOpen(true)
   }
 
   const handleDeleteProduct = (product: Produto) => {
@@ -285,7 +284,7 @@ export function ProdutosClient() {
                 <TableRow key={produto.id}>
                   <TableCell className="font-medium">{produto.nome}</TableCell>
                   <TableCell>{produto.codigo}</TableCell>
-                  <TableCell>{categoriasMap[produto.categoriaId] || 'Categoria não encontrada'}</TableCell>
+                  <TableCell>{produto.categoria?.nome || 'Categoria não encontrada'}</TableCell>
                   <TableCell>
                     R$ {produto.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
@@ -340,6 +339,12 @@ export function ProdutosClient() {
         onSubmit={handleProductSubmit}
         product={selectedProduct}
         isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      <ProductDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        productId={selectedProductId}
       />
     </div>
   )

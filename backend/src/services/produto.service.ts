@@ -7,6 +7,7 @@ interface CriarProdutoDTO {
   codigo: string;
   preco: number;
   categoriaId: string;
+  fornecedorIds?: string[];
 }
 
 interface AtualizarProdutoDTO {
@@ -15,6 +16,7 @@ interface AtualizarProdutoDTO {
   codigo?: string;
   preco?: number;
   categoriaId?: string;
+  fornecedorIds?: string[];
 }
 
 export class ProdutoService {
@@ -40,37 +42,6 @@ export class ProdutoService {
     });
   }
 
-  async criar(dados: CriarProdutoDTO): Promise<Produto> {
-    return await prisma.produto.create({
-      data: {
-        nome: dados.nome,
-        descricao: dados.descricao,
-        codigo: dados.codigo,
-        preco: dados.preco,
-        categoriaId: dados.categoriaId,
-      },
-    });
-  }
-
-  async atualizar(id: string, dados: AtualizarProdutoDTO): Promise<Produto> {
-    return await prisma.produto.update({
-      where: { id },
-      data: {
-        nome: dados.nome,
-        descricao: dados.descricao,
-        codigo: dados.codigo,
-        preco: dados.preco,
-        categoriaId: dados.categoriaId,
-      },
-    });
-  }
-
-  async excluir(id: string): Promise<void> {
-    await prisma.produto.delete({
-      where: { id },
-    });
-  }
-
   async buscarPorNome(nome: string): Promise<Produto[]> {
     return await prisma.produto.findMany({
       where: {
@@ -81,7 +52,75 @@ export class ProdutoService {
       },
       include: {
         categoria: true,
+        fornecedores: {
+          include: {
+            fornecedor: true,
+          },
+        },
       },
     });
   }
+
+  async criar(dados: CriarProdutoDTO): Promise<Produto> {
+    return await prisma.produto.create({
+      data: {
+        nome: dados.nome,
+        descricao: dados.descricao,
+        codigo: dados.codigo,
+        preco: dados.preco,
+        categoriaId: dados.categoriaId,
+        ...(dados.fornecedorIds && {
+          fornecedores: {
+            create: dados.fornecedorIds.map((fornecedorId) => ({
+            fornecedor: {
+              connect: { id: fornecedorId }
+              }
+            })),
+          },
+        }),
+      },
+    });
+  }
+
+  async atualizar(id: string, dados: AtualizarProdutoDTO): Promise<Produto> {
+    const updateData: any = {
+      nome: dados.nome,
+      descricao: dados.descricao,
+      codigo: dados.codigo,
+      preco: dados.preco,
+      categoriaId: dados.categoriaId,
+    };
+
+    // Se fornecedorIds foram fornecidos, atualizar os relacionamentos
+    if (dados.fornecedorIds) {
+      updateData.fornecedores = {
+        deleteMany: {}, // Remove todos os relacionamentos existentes
+        create: dados.fornecedorIds.map((fornecedorId) => ({
+          fornecedor: {
+            connect: { id: fornecedorId }
+          }
+        })),
+      };
+    }
+
+    return await prisma.produto.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async excluir(id: string): Promise<void> {
+    const produto = await prisma.produto.findUnique({
+      where: { id },
+    });
+
+    if (!produto) {
+      throw new Error('Produto não encontrado');
+    }
+
+    await prisma.produto.delete({
+      where: { id },
+    });
+  }
+
 }

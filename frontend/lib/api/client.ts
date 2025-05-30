@@ -59,9 +59,14 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        // Adicionar status do erro para melhor handling
-        const error = new Error(data.message || data.error || 'Erro na requisição') as Error & { status?: number };
+        // Melhor tratamento de erro para capturar a estrutura completa
+        const errorMessage = data.error || data.message || 'Erro na requisição';
+        const error = new Error(errorMessage) as Error & {
+          status?: number;
+          response?: typeof data;
+        };
         error.status = response.status;
+        error.response = data; // Preservar a resposta completa
         throw error;
       }
 
@@ -78,28 +83,55 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<T> {
-    return this.request<T>(endpoint, {
+    const options: RequestInit = {
       method: 'POST',
-      body: data ? JSON.stringify(data) : null,
-    });
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+      options.headers = {
+        'Content-Type': 'application/json',
+      };
+    }
+
+    return this.request<T>(endpoint, options);
   }
 
   async put<T>(endpoint: string, data?: Record<string, unknown>): Promise<T> {
-    return this.request<T>(endpoint, {
+    const options: RequestInit = {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : null,
-    });
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+      options.headers = {
+        'Content-Type': 'application/json',
+      };
+    }
+
+    return this.request<T>(endpoint, options);
   }
 
   async patch<T>(endpoint: string, data?: Record<string, unknown>): Promise<T> {
-    return this.request<T>(endpoint, {
+    const options: RequestInit = {
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : null,
-    });
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+      options.headers = {
+        'Content-Type': 'application/json',
+      };
+    }
+
+    return this.request<T>(endpoint, options);
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+      // Não incluir Content-Type para DELETE sem body
+    });
   }
 }
 

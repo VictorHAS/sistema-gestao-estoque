@@ -13,40 +13,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Building, Mail, Phone, MapPin, Package, Calendar, Activity } from "lucide-react"
-
-interface Supplier {
-  id: string
-  nome: string
-  email: string
-  telefone: string
-  endereco: string
-  produtosAtivos: number
-  ultimaCompra: string
-  status: string
-}
+import { Building, Mail, Phone, MapPin, Calendar } from "lucide-react"
+import type { Fornecedor } from "@/lib/api/types"
 
 interface SupplierDetailsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  supplier: Supplier | null
+  supplier: Fornecedor | null
 }
 
 export function SupplierDetailsDialog({ open, onOpenChange, supplier }: SupplierDetailsDialogProps) {
   if (!supplier) return null
-
-  const getStatusColor = (status: string) => {
-    return status === "Ativo" ? "default" : "secondary"
-  }
-
-  const isRecentPurchase = () => {
-    const lastPurchase = new Date(supplier.ultimaCompra)
-    const threeMonthsAgo = new Date()
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-    return lastPurchase > threeMonthsAgo
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,70 +56,42 @@ export function SupplierDetailsDialog({ open, onOpenChange, supplier }: Supplier
                 <span className="font-medium">Email:</span>
                 <span>{supplier.email}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Telefone:</span>
-                <span>{supplier.telefone}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Endereço:</span>
-                <span>{supplier.endereco}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Status:</span>
-                <Badge variant={getStatusColor(supplier.status)}>
-                  {supplier.status}
-                </Badge>
-              </div>
+              {supplier.telefone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">Telefone:</span>
+                  <span>{supplier.telefone}</span>
+                </div>
+              )}
+              {supplier.endereco && (
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div>
+                    <span className="font-medium">Endereço:</span>
+                    <p className="text-sm text-muted-foreground mt-1">{supplier.endereco}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <Separator />
 
-          {/* Informações Comerciais */}
+          {/* Informações de Auditoria */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Informações Comerciais</CardTitle>
+              <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Produtos Ativos:</span>
-                <Badge variant="outline">
-                  {supplier.produtosAtivos} produto{supplier.produtosAtivos !== 1 ? 's' : ''}
-                </Badge>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Cadastrado em:</span>
+                <span>{new Date(supplier.dataCriacao).toLocaleDateString('pt-BR')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Última Compra:</span>
-                <span>{new Date(supplier.ultimaCompra).toLocaleDateString('pt-BR')}</span>
-                {isRecentPurchase() && (
-                  <Badge variant="default" className="text-xs">
-                    Recente
-                  </Badge>
-                )}
-              </div>
-
-              {/* Indicadores de Performance */}
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Indicadores</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Relacionamento:</span>
-                    <div className="font-medium">
-                      {isRecentPurchase() ? "Ativo" : "Inativo"}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Portfólio:</span>
-                    <div className="font-medium">
-                      {supplier.produtosAtivos > 20 ? "Grande" :
-                       supplier.produtosAtivos > 10 ? "Médio" : "Pequeno"}
-                    </div>
-                  </div>
-                </div>
+                <span className="font-medium">Última atualização:</span>
+                <span>{new Date(supplier.dataAtualizacao).toLocaleDateString('pt-BR')}</span>
               </div>
             </CardContent>
           </Card>
@@ -153,21 +103,23 @@ export function SupplierDetailsDialog({ open, onOpenChange, supplier }: Supplier
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-blue-500">📧</span>
-                  Enviar email para fornecedor
+                <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
+                  <span className="text-blue-600">📧</span>
+                  <span>Enviar email</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-green-500">📞</span>
-                  Ligar para fornecedor
+                {supplier.telefone && (
+                  <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
+                    <span className="text-green-600">📞</span>
+                    <span>Ligar</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
+                  <span className="text-purple-600">📦</span>
+                  <span>Ver produtos</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-purple-500">📦</span>
-                  Ver produtos do fornecedor
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-orange-500">📋</span>
-                  Histórico de compras
+                <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
+                  <span className="text-orange-600">📋</span>
+                  <span>Nova compra</span>
                 </div>
               </div>
             </CardContent>

@@ -34,7 +34,7 @@ export default async function (fastify: FastifyInstance) {
           type: 'object',
           properties: {
             mensagem: { type: 'string' },
-            erro: { type: 'string' }
+            error: { type: 'string' }
           }
         }
       },
@@ -78,7 +78,7 @@ export default async function (fastify: FastifyInstance) {
           type: 'object',
           properties: {
             mensagem: { type: 'string' },
-            erro: { type: 'string' }
+            error: { type: 'string' }
           }
         }
       },
@@ -118,7 +118,7 @@ export default async function (fastify: FastifyInstance) {
           type: 'object',
           properties: {
             mensagem: { type: 'string' },
-            erro: { type: 'string' }
+            error: { type: 'string' }
           }
         }
       },
@@ -164,7 +164,7 @@ export default async function (fastify: FastifyInstance) {
           type: 'object',
           properties: {
             mensagem: { type: 'string' },
-            erro: { type: 'string' }
+            error: { type: 'string' }
           }
         }
       },
@@ -201,7 +201,7 @@ export default async function (fastify: FastifyInstance) {
           type: 'object',
           properties: {
             mensagem: { type: 'string' },
-            erro: { type: 'string' }
+            error: { type: 'string' }
           }
         }
       },

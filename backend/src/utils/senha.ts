@@ -1,9 +1,9 @@
-import { createHash } from 'node:crypto';
+import bcrypt from 'bcrypt';
 
 export async function hashSenha(senha: string): Promise<string> {
-  return await createHash('sha256').update(senha).digest('hex');
+  return await bcrypt.hash(senha, 10);
 }
 
 export async function verificarSenha(senha: string, hash: string): Promise<boolean> {
-  return await createHash('sha256').update(senha).digest('hex') === hash;
+  return await bcrypt.compare(senha, hash);
 }

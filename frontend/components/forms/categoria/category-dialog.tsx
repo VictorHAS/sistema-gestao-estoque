@@ -8,13 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { CategoryForm } from "./category-form"
-
-interface Category {
-  id: string
-  nome: string
-  totalProdutos: number
-  dataCriacao: string
-}
+import type { Categoria } from "@/lib/api/types"
 
 interface CategoryFormData {
   nome: string
@@ -23,7 +17,7 @@ interface CategoryFormData {
 interface CategoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  category?: Category | null
+  category?: Categoria | null
   onSubmit: (data: CategoryFormData) => void
   isLoading?: boolean
 }

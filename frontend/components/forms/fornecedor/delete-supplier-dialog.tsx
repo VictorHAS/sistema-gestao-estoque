@@ -1,22 +1,16 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-
-interface Supplier {
-  id: string
-  nome: string
-  email: string
-  produtosAtivos: number
-}
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { AlertTriangle } from "lucide-react"
+import type { Supplier } from "@/lib/api/types"
 
 interface DeleteSupplierDialogProps {
   open: boolean
@@ -37,54 +31,55 @@ export function DeleteSupplierDialog({
 
   const handleConfirm = () => {
     onConfirm(supplier.id)
-    onOpenChange(false)
   }
 
   const hasProducts = supplier.produtosAtivos > 0
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <p>
-              Tem certeza de que deseja excluir o fornecedor <strong>{supplier.nome}</strong>?
-            </p>
-            <p className="text-sm">
-              <strong>Email:</strong> {supplier.email}
-            </p>
-
-            {hasProducts ? (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                <p className="text-destructive font-medium">
-                  ⚠️ Atenção! Este fornecedor possui {supplier.produtosAtivos} produto(s) associado(s).
-                </p>
-                <p className="text-sm text-destructive/80 mt-1">
-                  Você deve remover ou reatribuir todos os produtos antes de excluir este fornecedor.
-                </p>
-              </div>
-            ) : (
-              <p className="text-destructive font-medium">
-                Esta ação não pode ser desfeita. Todas as informações do fornecedor
-                serão permanentemente removidas.
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Confirmar Exclusão
+          </DialogTitle>
+          <DialogDescription asChild>
+            <div className="space-y-2">
+              <p>
+                Tem certeza de que deseja excluir o fornecedor <strong>{supplier.nome}</strong>?
               </p>
-            )}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
+              <div className="text-sm text-muted-foreground">
+                <strong>Email:</strong> {supplier.email}
+              </div>
+
+              {hasProducts && (
+                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm text-destructive font-medium">
+                    ⚠️ Atenção! Este fornecedor possui {supplier.produtosAtivos} produto(s) associado(s).
+                    A exclusão pode afetar outros registros do sistema.
+                  </p>
+                </div>
+              )}
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
             Cancelar
-          </AlertDialogCancel>
-          <AlertDialogAction
+          </Button>
+          <Button
+            variant="destructive"
             onClick={handleConfirm}
-            disabled={isLoading || hasProducts}
-            className="bg-destructive hover:bg-destructive/90"
+            disabled={isLoading}
           >
             {isLoading ? "Excluindo..." : "Excluir"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -33,130 +33,118 @@ import { Badge } from "@/components/ui/badge"
 import { CategoryDialog } from "@/components/forms/categoria/category-dialog"
 import { DeleteCategoryDialog } from "@/components/forms/categoria/delete-category-dialog"
 
-// Mock data - in a real app, this would come from your API
-const initialCategorias = [
-  {
-    id: "1",
-    nome: "Informática",
-    totalProdutos: 45,
-    dataCriacao: "2025-01-15",
-  },
-  {
-    id: "2",
-    nome: "Periféricos",
-    totalProdutos: 67,
-    dataCriacao: "2025-01-10",
-  },
-  {
-    id: "3",
-    nome: "Monitores",
-    totalProdutos: 23,
-    dataCriacao: "2025-01-08",
-  },
-  {
-    id: "4",
-    nome: "Cabos",
-    totalProdutos: 156,
-    dataCriacao: "2025-01-05",
-  },
-  {
-    id: "5",
-    nome: "Acessórios",
-    totalProdutos: 89,
-    dataCriacao: "2025-01-03",
-  },
-  {
-    id: "6",
-    nome: "Categoria Vazia",
-    totalProdutos: 0,
-    dataCriacao: "2025-01-20",
-  },
-]
+// Import real hooks
+import { useCategorias, useCreateCategoria, useUpdateCategoria, useDeleteCategoria } from "@/hooks/queries/useCategorias"
+import { useProdutos } from "@/hooks/queries/useProdutos"
+import type { Categoria, Produto } from "@/lib/api/types"
 
 export default function CategoriasPage() {
-  const [categorias, setCategorias] = useState(initialCategorias)
+  // Use real hooks instead of mock data
+  const { data: categorias = [], isLoading, error } = useCategorias()
+  const { data: produtos = [] } = useProdutos()
+
+  // Mutation hooks
+  const createCategoriaMutation = useCreateCategoria()
+  const updateCategoriaMutation = useUpdateCategoria()
+  const deleteCategoriaMutation = useDeleteCategoria()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<typeof initialCategorias[0] | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const filteredCategorias = categorias.filter(categoria =>
+  const filteredCategorias = categorias.filter((categoria: Categoria) =>
     categoria.nome.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const totalProdutosCategorias = categorias.reduce((acc, cat) => acc + cat.totalProdutos, 0)
+  // Calculate products per category
+  const getCategoryProductCount = (categoriaId: string) => {
+    return produtos.filter((produto: Produto) => produto.categoriaId === categoriaId).length
+  }
+
+  const totalProdutosCategorias = categorias.reduce((acc: number, cat: Categoria) =>
+    acc + getCategoryProductCount(cat.id), 0
+  )
 
   const handleCreateCategory = () => {
     setSelectedCategory(null)
     setIsCategoryDialogOpen(true)
   }
 
-  const handleEditCategory = (category: typeof initialCategorias[0]) => {
+  const handleEditCategory = (category: Categoria) => {
     setSelectedCategory(category)
     setIsCategoryDialogOpen(true)
   }
 
-  const handleDeleteCategory = (category: typeof initialCategorias[0]) => {
+  const handleDeleteCategory = (category: Categoria) => {
     setSelectedCategory(category)
     setIsDeleteDialogOpen(true)
   }
 
   const handleCategorySubmit = async (data: { nome: string }) => {
-    setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      setIsSubmitting(true)
 
       if (selectedCategory) {
         // Update existing category
-        setCategorias(prev => prev.map(cat =>
-          cat.id === selectedCategory.id
-            ? { ...cat, ...data }
-            : cat
-        ))
-        toast.success("Categoria atualizada", {
-          description: "A categoria foi atualizada com sucesso.",
-        })
+        await updateCategoriaMutation.mutateAsync({ id: selectedCategory.id, data })
+        toast.success("Categoria atualizada com sucesso!")
       } else {
         // Create new category
-        const newCategory = {
-          id: Date.now().toString(),
-          ...data,
-          totalProdutos: 0,
-          dataCriacao: new Date().toISOString(),
-        }
-        setCategorias(prev => [...prev, newCategory])
-        toast.success("Categoria criada", {
-          description: "A nova categoria foi criada com sucesso.",
-        })
+        await createCategoriaMutation.mutateAsync(data)
+        toast.success("Categoria criada com sucesso!")
       }
-    } catch {
-      toast.error("Erro", {
-        description: "Ocorreu um erro ao salvar a categoria.",
-      })
+
+      setIsCategoryDialogOpen(false)
+      setSelectedCategory(null)
+    } catch (error) {
+      toast.error(selectedCategory ? "Erro ao atualizar categoria" : "Erro ao criar categoria")
+      console.error("Category submit error:", error)
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  const handleDeleteConfirm = async (categoryId: string) => {
-    setIsLoading(true)
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+  const handleDeleteConfirm = async () => {
+    if (!selectedCategory) return
 
-      setCategorias(prev => prev.filter(cat => cat.id !== categoryId))
-      toast.success("Categoria excluída", {
-        description: "A categoria foi excluída com sucesso.",
-      })
-    } catch {
-      toast.error("Erro", {
-        description: "Ocorreu um erro ao excluir a categoria.",
-      })
+    try {
+      setIsSubmitting(true)
+      await deleteCategoriaMutation.mutateAsync(selectedCategory.id)
+      toast.success("Categoria excluída com sucesso!")
+      setIsDeleteDialogOpen(false)
+      setSelectedCategory(null)
+    } catch (error) {
+      toast.error("Erro ao excluir categoria")
+      console.error("Delete category error:", error)
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Carregando categorias...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-destructive">Erro ao carregar categorias: {error.message}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -184,7 +172,7 @@ export default function CategoriasPage() {
           <CardContent>
             <div className="text-2xl font-bold">{categorias.length}</div>
             <p className="text-xs text-muted-foreground">
-              {categorias.filter(cat => cat.totalProdutos === 0).length} categorias vazias
+              {categorias.filter(cat => getCategoryProductCount(cat.id) === 0).length} categorias vazias
             </p>
           </CardContent>
         </Card>
@@ -212,86 +200,95 @@ export default function CategoriasPage() {
               {categorias.length > 0 ? Math.round(totalProdutosCategorias / categorias.length) : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              produtos por categoria
+              Produtos por categoria
             </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Search and Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar categorias..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories Table */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Categorias</CardTitle>
           <CardDescription>
-            Gerencie as categorias dos seus produtos
+            {filteredCategorias.length} categoria(s) encontrada(s)
           </CardDescription>
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar categorias..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome da Categoria</TableHead>
-                <TableHead>Total de Produtos</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Produtos</TableHead>
                 <TableHead>Data de Criação</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCategorias.map((categoria) => (
-                <TableRow key={categoria.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center space-x-2">
-                      <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span>{categoria.nome}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={categoria.totalProdutos === 0 ? "secondary" : "outline"}
-                    >
-                      {categoria.totalProdutos} produto{categoria.totalProdutos !== 1 ? 's' : ''}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(categoria.dataCriacao).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEditCategory(categoria)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteCategory(categoria)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredCategorias.map((categoria) => {
+                const productCount = getCategoryProductCount(categoria.id)
+                return (
+                  <TableRow key={categoria.id}>
+                    <TableCell className="font-medium">{categoria.nome}</TableCell>
+                    <TableCell>{productCount} produtos</TableCell>
+                    <TableCell>
+                      {new Date(categoria.dataCriacao).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      {productCount === 0 ? (
+                        <Badge variant="secondary">Vazia</Badge>
+                      ) : (
+                        <Badge variant="default">Ativa</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleEditCategory(categoria)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteCategory(categoria)}
+                            className="text-destructive"
+                            disabled={productCount > 0}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
 
@@ -309,7 +306,7 @@ export default function CategoriasPage() {
         onOpenChange={setIsCategoryDialogOpen}
         category={selectedCategory}
         onSubmit={handleCategorySubmit}
-        isLoading={isLoading}
+        isLoading={isSubmitting}
       />
 
       <DeleteCategoryDialog
@@ -317,7 +314,8 @@ export default function CategoriasPage() {
         onOpenChange={setIsDeleteDialogOpen}
         category={selectedCategory}
         onConfirm={handleDeleteConfirm}
-        isLoading={isLoading}
+        isLoading={isSubmitting}
+        productCount={selectedCategory ? getCategoryProductCount(selectedCategory.id) : 0}
       />
     </div>
   )

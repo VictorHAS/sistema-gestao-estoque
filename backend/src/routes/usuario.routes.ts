@@ -26,15 +26,34 @@ export default async function (fastify: FastifyInstance) {
       },
       response: {
         200: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              email: { type: 'string' },
-              nome: { type: 'string' },
-              cargo: { type: 'string', enum: Object.values(Cargo) }
+          description: 'Lista de usuários',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  email: { type: 'string', format: 'email' },
+                  nome: { type: 'string' },
+                  cargo: { type: 'string', enum: Object.values(Cargo) },
+                  dataCriacao: { type: 'string', format: 'date-time' },
+                  dataAtualizacao: { type: 'string', format: 'date-time' }
+                }
+              }
             }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -60,18 +79,39 @@ export default async function (fastify: FastifyInstance) {
       },
       response: {
         200: {
+          description: 'Dados do usuário',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            nome: { type: 'string' },
-            cargo: { type: 'string', enum: Object.values(Cargo) }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                email: { type: 'string', format: 'email' },
+                nome: { type: 'string' },
+                cargo: { type: 'string', enum: Object.values(Cargo) },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
         404: {
+          description: 'Usuário não encontrado',
           type: 'object',
           properties: {
-            mensagem: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -101,12 +141,40 @@ export default async function (fastify: FastifyInstance) {
       },
       response: {
         201: {
+          description: 'Usuário criado com sucesso',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            nome: { type: 'string' },
-            cargo: { type: 'string', enum: Object.values(Cargo) }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                email: { type: 'string', format: 'email' },
+                nome: { type: 'string' },
+                cargo: { type: 'string', enum: Object.values(Cargo) },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Dados inválidos',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -138,12 +206,39 @@ export default async function (fastify: FastifyInstance) {
       },
       response: {
         200: {
+          description: 'Usuário atualizado com sucesso',
           type: 'object',
           properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            nome: { type: 'string' },
-            cargo: { type: 'string', enum: Object.values(Cargo) }
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                email: { type: 'string', format: 'email' },
+                nome: { type: 'string' },
+                cargo: { type: 'string', enum: Object.values(Cargo) },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Usuário não encontrado',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -176,9 +271,28 @@ export default async function (fastify: FastifyInstance) {
       response: {
         204: { description: 'Senha atualizada com sucesso' },
         400: {
+          description: 'Dados inválidos',
           type: 'object',
           properties: {
-            mensagem: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        404: {
+          description: 'Usuário não encontrado',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -204,9 +318,20 @@ export default async function (fastify: FastifyInstance) {
       response: {
         204: { description: 'Usuário removido com sucesso' },
         404: {
+          description: 'Usuário não encontrado',
           type: 'object',
           properties: {
-            mensagem: { type: 'string' }
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },

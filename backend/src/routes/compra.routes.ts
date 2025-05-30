@@ -14,7 +14,65 @@ export default async function compraRoutes(fastify: FastifyInstance) {
       summary: 'Listar todas as compras',
       description: 'Retorna todas as compras registradas',
       response: {
-        200: { type: 'array', items: { type: 'object' } }
+        200: {
+          description: 'Lista de compras',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  dataCompra: { type: 'string', format: 'date-time' },
+                  quantidade: { type: 'integer' },
+                  precoUnitario: { type: 'number' },
+                  valorTotal: { type: 'number' },
+                  status: { type: 'string', enum: Object.values(StatusPedido) },
+                  produtoId: { type: 'string' },
+                  fornecedorId: { type: 'string' },
+                  usuarioId: { type: 'string' },
+                  produto: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' },
+                      codigo: { type: 'string' },
+                      preco: { type: 'number' }
+                    }
+                  },
+                  fornecedor: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' },
+                      email: { type: 'string' }
+                    }
+                  },
+                  usuario: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' },
+                      email: { type: 'string' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -33,8 +91,79 @@ export default async function compraRoutes(fastify: FastifyInstance) {
         required: ['id']
       },
       response: {
-        200: { type: 'object' },
-        404: { type: 'object', properties: { mensagem: { type: 'string' } } }
+        200: {
+          description: 'Dados da compra',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                dataCompra: { type: 'string', format: 'date-time' },
+                quantidade: { type: 'integer' },
+                precoUnitario: { type: 'number' },
+                valorTotal: { type: 'number' },
+                status: { type: 'string', enum: Object.values(StatusPedido) },
+                produtoId: { type: 'string' },
+                fornecedorId: { type: 'string' },
+                usuarioId: { type: 'string' },
+                produto: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    nome: { type: 'string' },
+                    codigo: { type: 'string' },
+                    preco: { type: 'number' },
+                    categoria: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        nome: { type: 'string' }
+                      }
+                    }
+                  }
+                },
+                fornecedor: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    nome: { type: 'string' },
+                    email: { type: 'string' },
+                    telefone: { type: 'string' },
+                    endereco: { type: 'string' }
+                  }
+                },
+                usuario: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    nome: { type: 'string' },
+                    email: { type: 'string' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Compra não encontrada',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -56,7 +185,46 @@ export default async function compraRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        201: { type: 'object' }
+        201: {
+          description: 'Compra criada com sucesso',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                dataCompra: { type: 'string', format: 'date-time' },
+                quantidade: { type: 'integer' },
+                precoUnitario: { type: 'number' },
+                valorTotal: { type: 'number' },
+                status: { type: 'string', enum: Object.values(StatusPedido) },
+                produtoId: { type: 'string' },
+                fornecedorId: { type: 'string' },
+                usuarioId: { type: 'string' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Dados inválidos',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -84,8 +252,54 @@ export default async function compraRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        200: { type: 'object' },
-        400: { type: 'object', properties: { mensagem: { type: 'string' } } }
+        200: {
+          description: 'Status da compra atualizado com sucesso',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                dataCompra: { type: 'string', format: 'date-time' },
+                quantidade: { type: 'integer' },
+                precoUnitario: { type: 'number' },
+                valorTotal: { type: 'number' },
+                status: { type: 'string', enum: Object.values(StatusPedido) },
+                produtoId: { type: 'string' },
+                fornecedorId: { type: 'string' },
+                usuarioId: { type: 'string' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Status inválido',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          description: 'Compra não encontrada',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -105,8 +319,26 @@ export default async function compraRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        204: { description: 'Compra excluída com sucesso' },
-        500: { type: 'object', properties: { mensagem: { type: 'string' } } }
+        204: {
+          description: 'Compra excluída com sucesso'
+        },
+        404: {
+          description: 'Compra não encontrada',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Erro interno do servidor',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }

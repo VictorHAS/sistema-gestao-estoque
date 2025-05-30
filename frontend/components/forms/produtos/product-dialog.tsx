@@ -8,20 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ProductForm } from "./product-form"
-
-interface Product {
-  id: string
-  nome: string
-  descricao?: string
-  codigo: string
-  preco: number
-  categoriaId: string
-  categoria: string
-  estoque: number
-  fornecedor: string
-  fornecedorIds?: string[]
-  status: string
-}
+import type { Produto } from "@/lib/api/types"
 
 interface ProductFormData {
   nome: string
@@ -35,7 +22,7 @@ interface ProductFormData {
 interface ProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  product?: Product | null
+  product?: Produto | null
   onSubmit: (data: ProductFormData) => void
   isLoading?: boolean
 }
@@ -62,7 +49,10 @@ export function ProductDialog({ open, onOpenChange, product, onSubmit, isLoading
           </DialogDescription>
         </DialogHeader>
         <ProductForm
-          initialData={product || undefined}
+          initialData={product ? {
+            ...product,
+            fornecedorIds: [] // TODO: Get from product-supplier relation
+          } : undefined}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isLoading={isLoading}

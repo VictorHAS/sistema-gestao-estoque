@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { VendaService } from '../services/venda.service';
 import { StatusPedido } from '../generated/prisma';
+import { successResponse, errorResponse } from '../utils/response.helper';
 
 interface ParamsWithId {
   id: string;
@@ -16,7 +17,6 @@ interface CriarVendaBody {
   }[];
 }
 
-
 interface AtualizarStatusBody {
   status: StatusPedido;
 }
@@ -27,10 +27,10 @@ export class VendaController {
   listarTodas = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const vendas = await this.vendaService.listarTodas();
-      return reply.code(200).send(vendas);
+      return reply.code(200).send(successResponse('Lista de vendas obtida com sucesso', vendas));
     } catch (error) {
       request.log.error(error);
-      return reply.code(500).send({ error: 'Erro ao listar vendas' });
+      return reply.code(500).send(errorResponse('Erro ao listar vendas'));
     }
   };
 
@@ -43,13 +43,13 @@ export class VendaController {
       const venda = await this.vendaService.obterPorId(id);
 
       if (!venda) {
-        return reply.code(404).send({ error: 'Venda não encontrada' });
+        return reply.code(404).send(errorResponse('Venda não encontrada'));
       }
 
-      return reply.code(200).send(venda);
+      return reply.code(200).send(successResponse('Venda obtida com sucesso', venda));
     } catch (error) {
       request.log.error(error);
-      return reply.code(500).send({ error: 'Erro ao buscar venda' });
+      return reply.code(500).send(errorResponse('Erro ao buscar venda'));
     }
   };
 
@@ -60,10 +60,10 @@ export class VendaController {
     try {
       const body = request.body as CriarVendaBody;
       const novaVenda = await this.vendaService.criar(body);
-      return reply.code(201).send(novaVenda);
+      return reply.code(201).send(successResponse('Venda criada com sucesso', novaVenda));
     } catch (error) {
       request.log.error(error);
-      return reply.code(500).send({ error: 'Erro ao criar venda' });
+      return reply.code(500).send(errorResponse('Erro ao criar venda'));
     }
   };
 
@@ -75,13 +75,16 @@ export class VendaController {
       const { id } = request.params as ParamsWithId;
       const { status } = request.body as AtualizarStatusBody;
       const venda = await this.vendaService.atualizarStatus(id, { status });
-      return reply.code(200).send(venda);
+      if (!venda) {
+        return reply.code(404).send(errorResponse('Venda não encontrada'));
+      }
+      return reply.code(200).send(successResponse('Status da venda atualizado com sucesso', venda));
     } catch (error) {
       request.log.error(error);
       if (error instanceof Error && error.message === 'Venda não encontrada') {
-        return reply.code(404).send({ error: error.message });
+        return reply.code(404).send(errorResponse('Venda não encontrada'));
       }
-      return reply.code(500).send({ error: 'Erro ao atualizar status da venda' });
+      return reply.code(500).send(errorResponse('Erro ao atualizar status da venda'));
     }
   };
 
@@ -96,9 +99,9 @@ export class VendaController {
     } catch (error) {
       request.log.error(error);
       if (error instanceof Error && error.message === 'Venda não encontrada') {
-        return reply.code(404).send({ error: error.message });
+        return reply.code(404).send(errorResponse('Venda não encontrada'));
       }
-      return reply.code(500).send({ error: 'Erro ao excluir venda' });
+      return reply.code(500).send(errorResponse('Erro ao excluir venda'));
     }
   };
 }

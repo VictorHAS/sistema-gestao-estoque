@@ -51,7 +51,22 @@ export default async function (fastify: FastifyInstance) {
             message: { type: 'string' },
             data: {
               type: 'array',
-              items: { type: 'object' }
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  codigo: { type: 'string' },
+                  preco: { type: 'number' },
+                  categoria: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -78,7 +93,41 @@ export default async function (fastify: FastifyInstance) {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            data: { type: 'object' }
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                descricao: { type: 'string' },
+                codigo: { type: 'string' },
+                preco: { type: 'number' },
+                categoriaId: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' },
+                categoria: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    nome: { type: 'string' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -106,8 +155,33 @@ export default async function (fastify: FastifyInstance) {
             message: { type: 'string' },
             data: {
               type: 'array',
-              items: { type: 'object' }
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  descricao: { type: 'string' },
+                  codigo: { type: 'string' },
+                  preco: { type: 'number' },
+                  categoriaId: { type: 'string' },
+                  categoria: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' }
+                    }
+                  }
+                }
+              }
             }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -138,7 +212,35 @@ export default async function (fastify: FastifyInstance) {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            data: { type: 'object' }
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                descricao: { type: 'string' },
+                codigo: { type: 'string' },
+                preco: { type: 'number' },
+                categoriaId: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },
@@ -175,7 +277,34 @@ export default async function (fastify: FastifyInstance) {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            data: { type: 'object' }
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                descricao: { type: 'string' },
+                codigo: { type: 'string' },
+                preco: { type: 'number' },
+                categoriaId: { type: 'string' },
+                dataCriacao: { type: 'string', format: 'date-time' },
+                dataAtualizacao: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            error: { type: 'string' }
           }
         }
       },

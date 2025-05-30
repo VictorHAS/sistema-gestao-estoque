@@ -61,7 +61,51 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
       summary: 'Listar todo o estoque',
       description: 'Retorna todos os registros de estoque cadastrados',
       response: {
-        200: { type: 'array', items: { type: 'object' } }
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              quantidade: { type: 'integer' },
+              produtoId: { type: 'string' },
+              depositoId: { type: 'string' },
+              dataCriacao: { type: 'string', format: 'date-time' },
+              dataAtualizacao: { type: 'string', format: 'date-time' },
+              produto: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  codigo: { type: 'string' },
+                  preco: { type: 'number' },
+                  categoria: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nome: { type: 'string' }
+                    }
+                  }
+                }
+              },
+              deposito: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  nome: { type: 'string' },
+                  localizacao: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -78,8 +122,54 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         properties: { id: { type: 'string' } }
       },
       response: {
-        200: { type: 'object' },
-        404: { type: 'object', properties: { error: { type: 'string' } } }
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' },
+            produto: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                codigo: { type: 'string' },
+                preco: { type: 'number' },
+                categoria: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    nome: { type: 'string' }
+                  }
+                }
+              }
+            },
+            deposito: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                localizacao: { type: 'string' }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -99,8 +189,47 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        200: { type: 'object' },
-        404: { type: 'object', properties: { error: { type: 'string' } } }
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' },
+            produto: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                codigo: { type: 'string' },
+                preco: { type: 'number' }
+              }
+            },
+            deposito: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                nome: { type: 'string' },
+                localizacao: { type: 'string' }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -122,7 +251,31 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        201: { type: 'object' }
+        201: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -150,7 +303,30 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        200: { type: 'object' }
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -178,7 +354,30 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        200: { type: 'object' }
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }
@@ -206,8 +405,36 @@ export default async function estoqueRoutes(fastify: FastifyInstance) {
         }
       },
       response: {
-        200: { type: 'object' },
-        400: { type: 'object', properties: { error: { type: 'string' } } }
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            quantidade: { type: 'integer' },
+            produtoId: { type: 'string' },
+            depositoId: { type: 'string' },
+            dataCriacao: { type: 'string', format: 'date-time' },
+            dataAtualizacao: { type: 'string', format: 'date-time' }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            mensagem: { type: 'string' },
+            error: { type: 'string' }
+          }
+        }
       },
       security: [{ bearerAuth: [] }]
     }

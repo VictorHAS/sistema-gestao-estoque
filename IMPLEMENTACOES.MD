@@ -49,6 +49,8 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 - [x] Compra (service e controller)
 - [x] ItemCompra (service e controller)
 - [x] Deposito (service e controller)
+- [x] ItemCompra (service e controller)
+- [x] Deposito (service e controller)
 
 ### Funcionalidades
 - [x] Implementar registro de compras e itens de compra
@@ -56,6 +58,11 @@ Cada membro será responsável por até 2 services e 2 controllers, além de fun
 - [x] Implementar relatório de movimentação de compras
 - [x] Implementar CRUD de depósitos
 - [x] Implementar movimentação de estoque entre depósitos
+- [x] Implementar registro de compras e itens de compra
+- [x] Atualizar estoque ao registrar compra
+- [x] Implementar relatório de movimentação de compras
+- [x] Implementar CRUD de depósitos
+- [ ] Implementar movimentação de estoque entre depósitos
 
 ### Documentação
 - [ ] Documentar endpoints de Compra, ItemCompra e Deposito na documentação da API
